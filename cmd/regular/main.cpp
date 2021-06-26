@@ -71,7 +71,7 @@ int main(int, char **argv)
         std::vector<CloudsLogEntry> cloudsLogEntries = response.cloudsLog.getLogs();
         double executionTime = response.executionTime;
 
-        if (argv[14])
+        if (!argv[14])
         {
             NosetipFinder::saveNoseTip(noseTip, argv[14], filename);
         }
@@ -141,7 +141,7 @@ int main(int, char **argv)
                 verificationCloud->points[0],
                 noseTip);
         }
-        else if (strcmp(argv[15], "visualizar") == 0)
+        else if (strcmp(argv[15], "visualizar") != 0)
         {
             std::string resp;
             std::cout << "It's a good nose tip? Y/N" << std::endl;

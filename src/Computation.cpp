@@ -171,7 +171,7 @@ float Computation::findMaxValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
         }
     }
 
-    return NULL;
+    return -1;
 }
 
 float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
@@ -246,7 +246,7 @@ float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
         }
     }
 
-    return NULL;
+    return -1;
 }
 
 std::vector<int> Computation::findKPointsWithLargestGaussianCurvatures(CloudXYZ &inputCloud,

@@ -76,21 +76,24 @@ void NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inp
         return;
     }
 
-    float k1, k2;
+    float k1, k2, gc;
 
     for (int i = 0; i < shapeIndexes.size(); i++)
     {
-        if ((shapeIndexes[i] > thresholdShapeIndexMin) && (shapeIndexes[i] < thresholdShapeIndexMax))
-        {
-            k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
-            k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
+        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
+        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
 
-            if (k1 * k2 > thresholdPrincipalCurvatureMin)
+        gc = k1 * k2;
+        
+        if (gc > thresholdPrincipalCurvatureMin) 
+        {
+            if ((shapeIndexes[i] > thresholdShapeIndexMin) && (shapeIndexes[i] < thresholdShapeIndexMax))
             {
                 outputCloud->push_back(inputCloud->points[i]);
                 outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
                 outputShapeIndexes.push_back(shapeIndexes[i]);
             }
+
         }
     }
 }
@@ -228,4 +231,5 @@ bool NosetipFinder::saveNoseTip(pcl::PointXYZ noseTip, std::string filename, std
             }
         }
     }
+    return true;
 }
