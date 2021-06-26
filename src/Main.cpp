@@ -53,22 +53,23 @@ MainResponse Main::run(
   //Declaring clouds
   CloudXYZ::Ptr cloud(new CloudXYZ);
 
-  std::cout << "Reading " << filename << std::endl;
+  std::cout << "Loading " << filename << std::endl;
   cloud = Utils::loadCloudFile(filename);
 
-  pcl::PointXYZ *pointToAnalyze{0};
+  // pcl::PointXYZ *pointToAnalyze{0};
 
-  if (pointIndexToAnalyze >= 0)
-  {
-    pcl::PointXYZ p = cloud->points[pointIndexToAnalyze];
-    pointToAnalyze = &p;
-    *pointToAnalyze = p;
-  }
+  // if (pointIndexToAnalyze >= 0)
+  // {
+  //   pcl::PointXYZ p = cloud->points[pointIndexToAnalyze];
+  //   pointToAnalyze = &p;
+  //   *pointToAnalyze = p;
+  // }
 
   CloudXYZ::Ptr filteredCloud(new CloudXYZ);
 
-  //Removing NaNs
   std::vector<int> indices;
+
+  //Removing NaNs
   pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
 
   //Declaring Normal Clouds
@@ -95,20 +96,19 @@ MainResponse Main::run(
 
   //Computating Principal Curvatures
   Computation::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, computationMethod, computationRadiusOrKSize, principalCurvaturesCloud);
+
   std::vector<int> notNaNIndicesOfShapeIndexes;
   std::vector<float> shapeIndexes;
 
   // Computating Shape Indexes
   Computation::shapeIndexComputation(principalCurvaturesCloud, shapeIndexes, notNaNIndicesOfShapeIndexes);
+
   if (notNaNIndicesOfShapeIndexes.size() != filteredCloud->points.size() || notNaNIndicesOfShapeIndexes.size() != principalCurvaturesCloud->points.size())
   {
     NosetipFinder::removeNonExistingIndices(filteredCloud, notNaNIndicesOfShapeIndexes);
     NosetipFinder::removeNonExistingIndices(principalCurvaturesCloud, notNaNIndicesOfShapeIndexes);
   }
 
-  // int scaleShapeIndexMinThreshold = -1;
-  // int scaleShapeIndexMaxThreshold = 1;
-  // NosetipFinder::scaleShapeIndexes(shapeIndexes, scaleShapeIndexMinThreshold, scaleShapeIndexMaxThreshold);
   //Finding smaller and largest point values in the cloud
   float smallerX, smallerY, smallerZ, largestX, largestY, largestZ;
 
@@ -119,6 +119,7 @@ MainResponse Main::run(
   largestX = Computation::findMaxValueInPointCloud(filteredCloud, 'x');
   largestY = Computation::findMaxValueInPointCloud(filteredCloud, 'y');
   largestZ = Computation::findMaxValueInPointCloud(filteredCloud, 'z');
+
   //Point which will be used to realize a crop
   pcl::PointXYZ pointToCropFrom;
   pointToCropFrom.x = (smallerX + largestX) / 2;
@@ -158,8 +159,15 @@ MainResponse Main::run(
   {
     //Thresholding points by Shape Indexes and Gaussian Curvatures
     NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(
-        filteredCloud, shapeIndexes, principalCurvaturesCloud, -1, largestShapeIndexLimit, gaussianCurvatureLimit,
-        cloudAfterSIandGCfilter, shapeIndexAfterSIandGCfilter, pcCloudAfterSIandGCfilter);
+      filteredCloud,
+      shapeIndexes,
+      principalCurvaturesCloud,
+      -1,
+      largestShapeIndexLimit,
+      gaussianCurvatureLimit,
+      cloudAfterSIandGCfilter,
+      shapeIndexAfterSIandGCfilter,
+      pcCloudAfterSIandGCfilter);
 
     std::string logLabel;
     std::stringstream siStream, gcStream;
@@ -168,6 +176,8 @@ MainResponse Main::run(
     logLabel = "1." + std::to_string(gcAndSIFilterCount) + " SI(" + siStream.str() + ") and GC(" + gcStream.str() + ") filter";
     cloudsLog.add(logLabel, cloudAfterSIandGCfilter);
     gcAndSIFilterCount++;
+
+    std::cout << "Gaussian Curvature Values: " << gaussianCurvatureLimit << std::endl;
 
     //Checking if there is enough points to continue the algorithm
     if (cloudAfterSIandGCfilter->points.size() < minPointsToContinue)
@@ -180,9 +190,9 @@ MainResponse Main::run(
       cloudAfterSIandGCfilter->points.clear();
       pcCloudAfterSIandGCfilter->clear();
 
-      if (gaussianCurvatureLimit > 0.008)
+      if (gaussianCurvatureLimit > 0.001)
       {
-        gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
+        gaussianCurvatureLimit = gaussianCurvatureLimit + 0.001;
       }
       else if (largestShapeIndexLimit < 1)
       {
@@ -237,9 +247,9 @@ MainResponse Main::run(
       indexSearch.clear();
       squaredDistanceSearch.clear();
 
-      if (gaussianCurvatureLimit > 0.008 && flexibilizeThresholds)
+      if (gaussianCurvatureLimit > 0.001 && flexibilizeThresholds)
       {
-        gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
+        gaussianCurvatureLimit = gaussianCurvatureLimit + 0.001;
       }
       else
       {
@@ -314,10 +324,10 @@ MainResponse Main::run(
   pa.isEmpty = true;
 
   // If enters here, pa.isEmpty will be set to false.
-  if (pointIndexToAnalyze >= 0)
-  {
-    pa = Utils::getPointAnalysis(*pointToAnalyze, filteredCloud, filteredNormalCloud, principalCurvaturesCloud, shapeIndexes);
-  }
+  // if (pointIndexToAnalyze >= 0)
+  // {
+  //   pa = Utils::getPointAnalysis(*pointToAnalyze, filteredCloud, filteredNormalCloud, principalCurvaturesCloud, shapeIndexes);
+  // }
 
   response.pointAnalysis = pa;
 

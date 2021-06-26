@@ -29,12 +29,10 @@ void NosetipFinder::thresholdByShapeIndex(CloudXYZ::Ptr &inputCloud, std::vector
 }
 
 void NosetipFinder::thresholdByGaussianCurvature(CloudXYZ::Ptr &inputCloud,
-                                                 CloudPC::Ptr
-                                                     &inputPrincipalCurvaturesCloud,
+                                                 CloudPC::Ptr &inputPrincipalCurvaturesCloud,
                                                  float thresholdMin,
                                                  CloudXYZ::Ptr &outputCloud,
-                                                 CloudPC::Ptr
-                                                     &outputPrincipalCurvaturesCloud)
+                                                 CloudPC::Ptr &outputPrincipalCurvaturesCloud)
 {
     if (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size())
     {
@@ -59,21 +57,19 @@ void NosetipFinder::thresholdByGaussianCurvature(CloudXYZ::Ptr &inputCloud,
 
 void NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inputCloud,
                                                               std::vector<float> shapeIndexes,
-                                                              CloudPC::Ptr
-                                                                  &inputPrincipalCurvaturesCloud,
+                                                              CloudPC::Ptr &inputPrincipalCurvaturesCloud,
                                                               float thresholdShapeIndexMin,
                                                               float thresholdShapeIndexMax,
                                                               float thresholdPrincipalCurvatureMin,
                                                               CloudXYZ::Ptr &outputCloud,
                                                               std::vector<float> outputShapeIndexes,
-                                                              CloudPC::Ptr
-                                                                  &outputPrincipalCurvaturesCloud)
+                                                              CloudPC::Ptr &outputPrincipalCurvaturesCloud)
 {
     if (
-        (inputCloud->points.size() != shapeIndexes.size()) || (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size()))
+        (inputCloud->points.size() != shapeIndexes.size()) ||
+        (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size()))
     {
         throw std::runtime_error("Input Cloud, Shape Indexes Vector and Principal Curvatures Cloud must have the same size.");
-        return;
     }
 
     float k1, k2, gc;
@@ -158,28 +154,14 @@ bool NosetipFinder::itsAGoodNoseTip(pcl::PointXYZ noseTip, float xValue, float y
 void NosetipFinder::removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep)
 {
     CloudXYZ::Ptr tempCloud(new CloudXYZ);
-
-    for (int i = 0; i < inputCloud->points.size(); i++)
-    {
-        tempCloud->points.push_back(inputCloud->points[i]);
-    }
-
-    inputCloud->points.clear();
-
-    for (int i = 0; i < indicesToKeep.size(); i++)
-    {
-        inputCloud->points.push_back(tempCloud->points[indicesToKeep[i]]);
-    }
+    pcl::copyPointCloud(*inputCloud, indicesToKeep, *tempCloud);
+    *inputCloud = *tempCloud;
 }
 
 void NosetipFinder::removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep)
 {
     CloudPC::Ptr tempCloud(new CloudPC);
-
-    for (int i = 0; i < inputCloud->points.size(); i++)
-    {
-        tempCloud->points.push_back(inputCloud->points[i]);
-    }
+    *tempCloud = *inputCloud;
 
     inputCloud->points.clear();
 
