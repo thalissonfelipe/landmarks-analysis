@@ -37,7 +37,11 @@ CloudXYZ::Ptr Utils::loadCloudFile(std::string filename)
   return cloud;
 }
 
-PointAnalysis Utils::getPointAnalysis(pcl::PointXYZ point, CloudXYZ::Ptr &inputCloud, CloudNormal::Ptr &normalCloud, CloudPC::Ptr &principalCurvaturesCloud, std::vector<float> shapeIndexes)
+PointAnalysis Utils::getPointAnalysis(pcl::PointXYZ point,
+                                      CloudXYZ::Ptr &inputCloud,
+                                      CloudNormal::Ptr &normalCloud,
+                                      CloudPC::Ptr &principalCurvaturesCloud,
+                                      std::vector<float> shapeIndexes)
 {
   int index = -1;
 
@@ -65,7 +69,12 @@ PointAnalysis Utils::getPointAnalysis(pcl::PointXYZ point, CloudXYZ::Ptr &inputC
   return pa;
 }
 
-void Utils::saveProcessingResult(std::string outputFilename, std::string inputCloudFilename, bool isAGoodNoseTip, double totalMilliseconds, pcl::PointXYZ originalNoseTip, pcl::PointXYZ foundNoseTip)
+void Utils::saveProcessingResult(std::string outputFilename,
+                                 std::string inputCloudFilename,
+                                 bool isAGoodNoseTip,
+                                 double totalMilliseconds,
+                                 pcl::PointXYZ originalNoseTip,
+                                 pcl::PointXYZ foundNoseTip)
 {
   std::ofstream outputFile;
   outputFile.open(outputFilename, std::ios_base::app);
@@ -73,7 +82,11 @@ void Utils::saveProcessingResult(std::string outputFilename, std::string inputCl
   outputFile.close();
 }
 
-void Utils::saveProcessingResult(std::string outputFilename, std::string inputCloudFilename, bool isAGoodNoseTip, double totalMilliseconds, pcl::PointXYZ foundNoseTip)
+void Utils::saveProcessingResult(std::string outputFilename,
+                                 std::string inputCloudFilename,
+                                 bool isAGoodNoseTip,
+                                 double totalMilliseconds,
+                                 pcl::PointXYZ foundNoseTip)
 {
   std::ofstream outputFile;
   outputFile.open(outputFilename, std::ios_base::app);

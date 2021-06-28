@@ -5,9 +5,10 @@
 #include <pcl/console/print.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/io/pcd_io.h>
-#include "NosetipFinder.h"
+#include "Anisotropy.h"
+#include "EyeRightCorner.h"
 
-void NosetipFinder::thresholdByShapeIndex(CloudXYZ::Ptr &inputCloud,
+void EyeRightCornerFinder::thresholdByShapeIndex(CloudXYZ::Ptr &inputCloud,
                                           std::vector<float> shapeIndexes,
                                           float thresholdMin,
                                           float thresholdMax,
@@ -30,7 +31,7 @@ void NosetipFinder::thresholdByShapeIndex(CloudXYZ::Ptr &inputCloud,
     }
 }
 
-void NosetipFinder::thresholdByGaussianCurvature(CloudXYZ::Ptr &inputCloud,
+void EyeRightCornerFinder::thresholdByGaussianCurvature(CloudXYZ::Ptr &inputCloud,
                                                  CloudPC::Ptr &inputPrincipalCurvaturesCloud,
                                                  float thresholdMin,
                                                  CloudXYZ::Ptr &outputCloud,
@@ -57,7 +58,7 @@ void NosetipFinder::thresholdByGaussianCurvature(CloudXYZ::Ptr &inputCloud,
     }
 }
 
-void NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inputCloud,
+void EyeRightCornerFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inputCloud,
                                                               std::vector<float> shapeIndexes,
                                                               CloudPC::Ptr &inputPrincipalCurvaturesCloud,
                                                               float thresholdShapeIndexMin,
@@ -96,61 +97,138 @@ void NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inp
     }
 }
 
-pcl::PointXYZ NosetipFinder::chooseANoseTip(CloudXYZ::Ptr inputCloud,
+pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
                                             int searchRadius,
                                             CloudsLog &cloudsLog)
 {
-    pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
-    kdTree.setInputCloud(inputCloud);
+    pcl::KdTreeFLANN<pcl::PointXYZ> kdTree, kdtree;
+    // kdTree.setInputCloud(inputCloud);
+    kdtree.setInputCloud(inputCloud);
 
-    pcl::PointXYZ noseTip;
+    pcl::PointXYZ eyerCorner;
 
     std::vector<std::vector<int>> points_index_vector(inputCloud->points.size());
     std::vector<std::vector<float>> points_rsd_vector(inputCloud->points.size());
 
+    // for (int i = 0; i < inputCloud->points.size(); i++)
+    // {
+    //     if (kdTree.radiusSearch(inputCloud->points[i], searchRadius, points_index_vector[i], points_rsd_vector[i]) > 0)
+    //     {
+    //         // std::cout << "Searching in the neighboorhod of the point " << i << std::endl;
+    //     }
+    //     else
+    //     {
+    //         throw std::runtime_error("Couldn't search points");
+    //         return pcl::PointXYZ();
+    //     }
+    // }
+
+    std::vector<GeometricFeatures> gfs;
+
     for (int i = 0; i < inputCloud->points.size(); i++)
     {
-        if (kdTree.radiusSearch(inputCloud->points[i], searchRadius, points_index_vector[i], points_rsd_vector[i]) > 0)
+        // std::vector<int> pointIdxKNNSearch;
+        // std::vector<float> pointKNNSquaredDistance;
+
+        if (kdtree.radiusSearch(inputCloud->points[i], 13, points_index_vector[i], points_rsd_vector[i]) > 0)
         {
-            // std::cout << "Searching in the neighboorhod of the point " << i << std::endl;
+            GeometricFeatures gf;
+            CloudXYZ::Ptr filteredCloud(new CloudXYZ);
+
+            pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
+
+            gf = Anisotropy::geometricFeatures(*filteredCloud);
+            gfs.push_back(gf);
+            // std::cout << Anisotropy::printGeometricFeatures(gf) << std::endl;
         }
         else
         {
             throw std::runtime_error("Couldn't search points");
             return pcl::PointXYZ();
         }
+        
+        // std::cout << "points_index_vector.size: " << points_index_vector[i].size() << std::endl;
+        // if (points_index_vector[i].size() > points_index_vector[biggest_index].size())
+        // {
+        //     biggest_index = i;
+        // }
     }
 
-    int biggest_index = 0;
-
-    for (int i = 1; i < inputCloud->points.size(); i++)
+    CloudXYZ::Ptr filteredCloud(new CloudXYZ);
+    std::vector<int> indices;
+    for (int i = 0; i < inputCloud->points.size(); i++)
     {
-        std::cout << "points_index_vector.size: " << points_index_vector[i].size() << std::endl;
-        if (points_index_vector[i].size() > points_index_vector[biggest_index].size())
+        if (gfs[i].gf04 > 0.88 && gfs[i].gf04 < 0.89) {
+            std::cout << Anisotropy::printGeometricFeatures(gfs[i]) << std::endl;
+            filteredCloud->points.push_back(inputCloud->points[i]);
+            indices.push_back(i);
+        }
+    }
+    std::cout << "Filtered cloud size: " << filteredCloud->points.size() << std::endl;
+    cloudsLog.add("4.1 Anisotropy (radius13)", filteredCloud);
+
+    CloudXYZ::Ptr filteredCloud1(new CloudXYZ);
+    indices.clear();
+    for (int i = 0; i < filteredCloud->points.size(); i++)
+    {
+        if (gfs[i].gf09 > 0.2) {
+            filteredCloud1->points.push_back(filteredCloud->points[i]);
+            indices.push_back(i);
+        }
+    }
+    std::cout << "Filtered cloud size: " << filteredCloud1->points.size() << std::endl;
+    cloudsLog.add("4.2 Anisotropy (radius13)", filteredCloud1);
+    
+    int selectedIndex = 0;
+    // for (int i = 1; i < indices.size(); i++)
+    // {
+    //     if (points_index_vector[i].size() > points_index_vector[selectedIndex].size())
+    //     {
+    //         selectedIndex = i;
+    //     }
+    // }
+
+    kdTree.setInputCloud(filteredCloud);
+    std::vector<std::vector<int>> points_index_vector1(filteredCloud->points.size());
+    std::vector<std::vector<float>> points_rsd_vector1(filteredCloud->points.size());
+
+    for (int i = 0; i < filteredCloud->points.size(); i++)
+    {
+        if (kdtree.radiusSearch(filteredCloud->points[i], 13, points_index_vector1[i], points_rsd_vector1[i]) <= 0)
         {
-            biggest_index = i;
+            throw std::runtime_error("Couldn't search points");
+            return pcl::PointXYZ();
         }
     }
 
-    noseTip = inputCloud->points[biggest_index];
+    for (int i = 1; i < filteredCloud->points.size(); i++)
+    {
+       if (points_index_vector1[i].size() < points_index_vector1[selectedIndex].size())
+        {
+            selectedIndex = i;
+        }
+    }
 
-    return noseTip;
+    // eyerCorner = filteredCloud1->points[selectedIndex];
+    eyerCorner = filteredCloud->points[selectedIndex];
+
+    return eyerCorner;
 }
 
-bool NosetipFinder::itsAGoodNoseTip(pcl::PointXYZ noseTip, float xValue, float yValue, float zValue, float maxDistance)
+bool EyeRightCornerFinder::itsAGoodPoint(pcl::PointXYZ noseTip, float xValue, float yValue, float zValue, float maxDistance)
 {
     double distance = sqrt(pow((noseTip.x - xValue), 2) + pow((noseTip.y - yValue), 2) + pow((noseTip.z - zValue), 2));
     return distance <= maxDistance;
 }
 
-void NosetipFinder::removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep)
+void EyeRightCornerFinder::removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep)
 {
     CloudXYZ::Ptr tempCloud(new CloudXYZ);
     pcl::copyPointCloud(*inputCloud, indicesToKeep, *tempCloud);
     *inputCloud = *tempCloud;
 }
 
-void NosetipFinder::removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep)
+void EyeRightCornerFinder::removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep)
 {
     CloudPC::Ptr tempCloud(new CloudPC);
     *tempCloud = *inputCloud;
@@ -163,7 +241,7 @@ void NosetipFinder::removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vect
     }
 }
 
-bool NosetipFinder::saveNoseTip(pcl::PointXYZ noseTip, std::string filename, std::string cloudName)
+bool EyeRightCornerFinder::savePoint(pcl::PointXYZ noseTip, std::string filename, std::string cloudName)
 {
     if (filename.substr(filename.length() - 3) == "pcd")
     {

@@ -11,17 +11,21 @@ add_definitions(${PCL_DEFINITIONS})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 
 add_executable (
-  nosetip_finder 
-  ../../src/Computation.cpp 
-  ../../src/Computation.h 
-  ../../src/Cropper.cpp 
-  ../../src/Cropper.h 
-  ../../src/NosetipFinder.cpp 
-  ../../src/NosetipFinder.h 
-  ../../src/CloudsLog.cpp 
-  ../../src/CloudsLog.h 
-  ../../src/Utils.cpp 
-  ../../src/Utils.h 
+  nosetip_finder
+  ../../src/Computation.cpp
+  ../../src/Computation.h
+  ../../src/Cropper.cpp
+  ../../src/Cropper.h
+  ../../src/NosetipFinder.cpp
+  ../../src/NosetipFinder.h
+  ../../src/EyeRightCorner.cpp
+  ../../src/EyeRightCorner.h
+  ../../src/Anisotropy.cpp
+  ../../src/Anisotropy.h
+  ../../src/CloudsLog.cpp
+  ../../src/CloudsLog.h
+  ../../src/Utils.cpp
+  ../../src/Utils.h
   ../../src/Main.cpp
   ../../src/Main.h
   main.cpp

@@ -22,6 +22,7 @@
 #include "Computation.h"
 #include "Cropper.h"
 #include "NosetipFinder.h"
+#include "EyeRightCorner.h"
 #include "CloudsLog.h"
 #include "Utils.h"
 
@@ -149,7 +150,7 @@ MainResponse Main::run(
   //When flexing parameters, at some point, we try to get the average Z of cloud: (smallerZ + largestZ) / 2
   //This is a control variable to check if we already do this and move to the next try
   bool triedToGetAverageZ = false;
-  float cropSize = minCropSize;
+  float cropSize = minCropSize; // default = 100
   double gaussianCurvatureLimit = minGaussianCurvature;
   double largestShapeIndexLimit = shapeIndexLimit;
 
@@ -177,7 +178,9 @@ MainResponse Main::run(
     cloudsLog.add(logLabel, cloudAfterSIandGCfilter);
     gcAndSIFilterCount++;
 
-    std::cout << "Gaussian Curvature Values: " << gaussianCurvatureLimit << std::endl;
+    // inputs
+    // shape index = -0.85
+    // gaussian curvature = 0.005
 
     //Checking if there is enough points to continue the algorithm
     if (cloudAfterSIandGCfilter->points.size() < minPointsToContinue)
@@ -190,9 +193,9 @@ MainResponse Main::run(
       cloudAfterSIandGCfilter->points.clear();
       pcCloudAfterSIandGCfilter->clear();
 
-      if (gaussianCurvatureLimit > 0.001)
+      if (gaussianCurvatureLimit > 0.004)
       {
-        gaussianCurvatureLimit = gaussianCurvatureLimit + 0.001;
+        gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
       }
       else if (largestShapeIndexLimit < 1)
       {
@@ -201,7 +204,7 @@ MainResponse Main::run(
       else
       {
         // largestShapeIndexLimit is at max 1. If even in this max there is not enough points, flexibilize gaussian curvature until find it.
-        gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
+        gaussianCurvatureLimit = gaussianCurvatureLimit + 0.001;
       }
       continue;
     }
@@ -210,23 +213,36 @@ MainResponse Main::run(
 
     //Cropping the cloud using the point calculated early. The result cloud is in 'croppedSIandGC'
     Cropper::cropByPointValues(
-        cloudAfterSIandGCfilter, pcCloudAfterSIandGCfilter, pointToCropFrom.x, pointToCropFrom.y, pointToCropFrom.z,
-        "radius", cropSize, croppedSIandGC, croppedPCSIandGC, indexSearch, squaredDistanceSearch);
-
+      cloudAfterSIandGCfilter,
+      pcCloudAfterSIandGCfilter,
+      pointToCropFrom.x,
+      pointToCropFrom.y,
+      pointToCropFrom.z,
+      "radius",
+      cropSize,
+      croppedSIandGC,
+      croppedPCSIandGC,
+      indexSearch,
+      squaredDistanceSearch);
+    
     std::stringstream cropStream;
     cropStream << std::fixed << std::setprecision(0) << cropSize;
 
     std::stringstream cropPointXStream;
     std::stringstream cropPointYStream;
     std::stringstream cropPointZStream;
+
     cropPointXStream << std::fixed << std::setprecision(2) << pointToCropFrom.x;
     cropPointYStream << std::fixed << std::setprecision(2) << pointToCropFrom.y;
     cropPointZStream << std::fixed << std::setprecision(2) << pointToCropFrom.z;
+    
     logLabel = "2." + std::to_string(cropCount) + " Crop(" + cropStream.str() + "mm) at (" + cropPointXStream.str() + "," + cropPointYStream.str() + "," + cropPointZStream.str() + ")";
     cloudsLog.add(logLabel, croppedSIandGC);
+
     cropCount++;
 
-    //Checking if there if enough points to continue
+    //Checking if there if enough points to continue (default = 15)
+    std::cout << "MinPointsCrop: " << minPointsToContinue << " Number os points after crop: " << croppedSIandGC->points.size() << std::endl;
     if (croppedSIandGC->points.size() > minPointsToContinue)
     {
       continueLoop = false;
@@ -247,9 +263,9 @@ MainResponse Main::run(
       indexSearch.clear();
       squaredDistanceSearch.clear();
 
-      if (gaussianCurvatureLimit > 0.001 && flexibilizeThresholds)
+      if (gaussianCurvatureLimit > 0.004 && flexibilizeThresholds)
       {
-        gaussianCurvatureLimit = gaussianCurvatureLimit + 0.001;
+        gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
       }
       else
       {
@@ -294,20 +310,30 @@ MainResponse Main::run(
   }
 
   CloudXYZ::Ptr cloudFinal(new CloudXYZ);
-  CloudPC::Ptr cloudPCFinal(new CloudPC);
 
   std::vector<float> shapeIndexFinal;
-  Cropper::removeIsolatedPoints(croppedSIandGC, shapeIndexes, removeIsolatedPointsRadius, removeIsolatedPointsThreshold, flexibilizeThresholds, minPointsToContinue, cloudFinal, shapeIndexFinal, cloudsLog);
+  Cropper::removeIsolatedPoints(
+    croppedSIandGC,
+    shapeIndexes,
+    removeIsolatedPointsRadius, 
+    removeIsolatedPointsThreshold,
+    flexibilizeThresholds,
+    minPointsToContinue,
+    cloudFinal, 
+    shapeIndexFinal,
+    cloudsLog);
 
   pcl::PointXYZ noseTip;
 
-  noseTip = NosetipFinder::chooseANoseTip(cloudFinal, nosetipSearchRadius, cloudsLog);
+  noseTip = EyeRightCornerFinder::choosePoint(cloudFinal, nosetipSearchRadius, cloudsLog);
   std::cout << noseTip << " choosed as nose tip!" << std::endl;
 
   CloudXYZ::Ptr noseTipCloud(new CloudXYZ);
   noseTipCloud->points.push_back(noseTip);
 
   std::string noseTipLabel = "5. Nosetip (Searched in " + std::to_string(cloudFinal->points.size()) + " points)";
+
+  std::cout << noseTipLabel << std::endl;
 
   std::vector<CloudsLogEntry> cloudsLogEntries = cloudsLog.getLogs();
   std::cout << "Amount of clouds in log: " << cloudsLogEntries.size() << std::endl;
@@ -320,8 +346,8 @@ MainResponse Main::run(
   response.noseTip = noseTip;
   response.executionTime = std::chrono::duration<double, std::milli>(totalDiff).count();
 
-  struct PointAnalysis pa;
-  pa.isEmpty = true;
+  // struct PointAnalysis pa;
+  // pa.isEmpty = true;
 
   // If enters here, pa.isEmpty will be set to false.
   // if (pointIndexToAnalyze >= 0)
@@ -329,7 +355,7 @@ MainResponse Main::run(
   //   pa = Utils::getPointAnalysis(*pointToAnalyze, filteredCloud, filteredNormalCloud, principalCurvaturesCloud, shapeIndexes);
   // }
 
-  response.pointAnalysis = pa;
+  // response.pointAnalysis = pa;
 
   return response;
 }
