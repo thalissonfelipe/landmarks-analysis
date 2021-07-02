@@ -92,7 +92,6 @@ void EyeRightCornerFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::P
                 outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
                 outputShapeIndexes.push_back(shapeIndexes[i]);
             }
-
         }
     }
 }
@@ -158,7 +157,11 @@ pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
     std::vector<int> indices;
     for (int i = 0; i < inputCloud->points.size(); i++)
     {
-        if (gfs[i].gf04 > 0.88 && gfs[i].gf04 < 0.89) {
+        // radius 13
+        // gfs[i].gf04 > 0.86
+        // gfs[i].gf09 > 0.2
+        // gfs[i].gf06 < 0.4
+        if (gfs[i].gf04 > 0.86) {
             std::cout << Anisotropy::printGeometricFeatures(gfs[i]) << std::endl;
             filteredCloud->points.push_back(inputCloud->points[i]);
             indices.push_back(i);
@@ -171,7 +174,7 @@ pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
     indices.clear();
     for (int i = 0; i < filteredCloud->points.size(); i++)
     {
-        if (gfs[i].gf09 > 0.2) {
+        if (gfs[i].gf03 > -280 && gfs[i].gf03 < -100) {
             filteredCloud1->points.push_back(filteredCloud->points[i]);
             indices.push_back(i);
         }
@@ -187,6 +190,29 @@ pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
     //         selectedIndex = i;
     //     }
     // }
+
+    // kdTree.setInputCloud(filteredCloud1);
+    // std::vector<std::vector<int>> points_index_vector1(filteredCloud1->points.size());
+    // std::vector<std::vector<float>> points_rsd_vector1(filteredCloud1->points.size());
+
+    // for (int i = 0; i < filteredCloud1->points.size(); i++)
+    // {
+    //     if (kdtree.radiusSearch(filteredCloud1->points[i], 13, points_index_vector1[i], points_rsd_vector1[i]) <= 0)
+    //     {
+    //         throw std::runtime_error("Couldn't search points");
+    //         return pcl::PointXYZ();
+    //     }
+    // }
+
+    // for (int i = 1; i < filteredCloud1->points.size(); i++)
+    // {
+    //    if (points_index_vector1[i].size() < points_index_vector1[selectedIndex].size())
+    //     {
+    //         selectedIndex = i;
+    //     }
+    // }
+
+    // eyerCorner = filteredCloud1->points[selectedIndex];
 
     kdTree.setInputCloud(filteredCloud);
     std::vector<std::vector<int>> points_index_vector1(filteredCloud->points.size());
@@ -209,7 +235,6 @@ pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
         }
     }
 
-    // eyerCorner = filteredCloud1->points[selectedIndex];
     eyerCorner = filteredCloud->points[selectedIndex];
 
     return eyerCorner;

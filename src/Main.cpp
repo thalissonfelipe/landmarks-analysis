@@ -159,7 +159,7 @@ MainResponse Main::run(
   while (continueLoop)
   {
     //Thresholding points by Shape Indexes and Gaussian Curvatures
-    NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(
+    EyeRightCornerFinder::thresholdByShapeIndexAndGaussianCurvature(
       filteredCloud,
       shapeIndexes,
       principalCurvaturesCloud,
