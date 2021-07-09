@@ -42,7 +42,9 @@ MainResponse Main::run(
     float removeIsolatedPointsRadius,
     int removeIsolatedPointsThreshold,
     int nosetipSearchRadius,
-    int pointIndexToAnalyze)
+    float gfSearchRadius,
+    std::string features,
+    std::string featuresThreshold)
 {
   auto totalStart = std::chrono::steady_clock::now();
   CloudsLog cloudsLog;
@@ -56,15 +58,6 @@ MainResponse Main::run(
 
   std::cout << "Loading " << filename << std::endl;
   cloud = Utils::loadCloudFile(filename);
-
-  // pcl::PointXYZ *pointToAnalyze{0};
-
-  // if (pointIndexToAnalyze >= 0)
-  // {
-  //   pcl::PointXYZ p = cloud->points[pointIndexToAnalyze];
-  //   pointToAnalyze = &p;
-  //   *pointToAnalyze = p;
-  // }
 
   CloudXYZ::Ptr filteredCloud(new CloudXYZ);
 
@@ -325,7 +318,12 @@ MainResponse Main::run(
 
   pcl::PointXYZ noseTip;
 
-  noseTip = EyeRightCornerFinder::choosePoint(cloudFinal, nosetipSearchRadius, cloudsLog);
+  noseTip = EyeRightCornerFinder::choosePoint(
+    cloudFinal,
+    gfSearchRadius,
+    features,
+    featuresThreshold,
+    cloudsLog);
   std::cout << noseTip << " choosed as nose tip!" << std::endl;
 
   CloudXYZ::Ptr noseTipCloud(new CloudXYZ);
@@ -345,17 +343,6 @@ MainResponse Main::run(
   response.cloudsLog = cloudsLog;
   response.noseTip = noseTip;
   response.executionTime = std::chrono::duration<double, std::milli>(totalDiff).count();
-
-  // struct PointAnalysis pa;
-  // pa.isEmpty = true;
-
-  // If enters here, pa.isEmpty will be set to false.
-  // if (pointIndexToAnalyze >= 0)
-  // {
-  //   pa = Utils::getPointAnalysis(*pointToAnalyze, filteredCloud, filteredNormalCloud, principalCurvaturesCloud, shapeIndexes);
-  // }
-
-  // response.pointAnalysis = pa;
 
   return response;
 }

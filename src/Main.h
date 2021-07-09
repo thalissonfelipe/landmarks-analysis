@@ -43,7 +43,9 @@ public:
       float removeIsolatedPointsRadius,
       int removeIsolatedPointsThreshold,
       int nosetipSearchRadius,
-      int pointIndexToAnalyze);
+      float gfSearchRadius,
+      std::string features,
+      std::string featuresThreshold);
 };
 
 #endif //NOSETIP_FINDER_MAIN_H

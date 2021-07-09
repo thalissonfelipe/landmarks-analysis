@@ -45,10 +45,11 @@ public:
         std::vector<float> outputShapeIndexes,
         CloudPC::Ptr &outputPrincipalCurvaturesCloud);
 
-    pcl::PointXYZ static choosePoint(
-        CloudXYZ::Ptr inputCloud,
-        int searchRadius,
-        CloudsLog &cloudsLog);
+    pcl::PointXYZ static choosePoint(CloudXYZ::Ptr inputCloud,
+                                    float gfSearchRadius,
+                                    std::string features,
+                                    std::string featuresThreshold,
+                                    CloudsLog &cloudsLog);
 
     bool static itsAGoodPoint(pcl::PointXYZ point, float xValue, float yValue, float zValue, float maxDistance);
 
