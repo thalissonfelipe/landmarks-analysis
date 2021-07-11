@@ -4,6 +4,7 @@
 
 #include <pcl/features/normal_3d.h>
 #include <pcl/features/principal_curvatures.h>
+
 #include "Computation.h"
 
 void Computation::normalComputation(
@@ -161,10 +162,8 @@ float Computation::findMaxValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
 
         return maxValue;
     }
-    else
-    {
-        throw std::runtime_error("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
-    }
+
+    throw std::runtime_error("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
 }
 
 float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
@@ -228,10 +227,8 @@ float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
 
         return minValue;
     }
-    else
-    {
-        throw std::runtime_error("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
-    }
+
+    throw std::runtime_error("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
 }
 
 std::vector<int> Computation::findKPointsWithLargestGaussianCurvatures(CloudXYZ &inputCloud,
@@ -242,4 +239,110 @@ std::vector<int> Computation::findKPointsWithLargestGaussianCurvatures(CloudXYZ 
     std::vector<int> largestGaussianCurvaturesIndices;
 
     return std::vector<int>();
+}
+
+void Computation::thresholdByShapeIndex(CloudXYZ::Ptr &inputCloud,
+                                        std::vector<float> shapeIndexes,
+                                        float thresholdMin,
+                                        float thresholdMax,
+                                        CloudXYZ::Ptr &outputCloud,
+                                        std::vector<float> outputShapeIndexes)
+{
+    if (inputCloud->points.size() != shapeIndexes.size())
+    {
+        throw std::runtime_error("Input Cloud and Shape Indexes Vector must have the same size in thresholdByShapeIndex");
+    }
+
+    for (int i = 0; i < shapeIndexes.size(); i++)
+    {
+        if ((shapeIndexes[i] > thresholdMin) && (shapeIndexes[i] < thresholdMax))
+        {
+            outputCloud->push_back(inputCloud->points[i]);
+            outputShapeIndexes.push_back(shapeIndexes[i]);
+        }
+    }
+}
+
+void Computation::thresholdByGaussianCurvature(CloudXYZ::Ptr &inputCloud,
+                                               CloudPC::Ptr &inputPrincipalCurvaturesCloud,
+                                               float thresholdMin,
+                                               CloudXYZ::Ptr &outputCloud,
+                                               CloudPC::Ptr &outputPrincipalCurvaturesCloud)
+{
+    if (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size())
+    {
+        throw std::runtime_error("Input Cloud and Principal Curvatures Vector must have the same size in thresholdByGaussianCurvature");
+    }
+
+    float k1, k2;
+
+    for (int i = 0; i < inputPrincipalCurvaturesCloud->size(); i++)
+    {
+        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
+        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
+
+        if (k1 * k2 > thresholdMin)
+        {
+            outputCloud->push_back(inputCloud->points[i]);
+            outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
+        }
+    }
+}
+
+void Computation::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inputCloud,
+                                                            std::vector<float> shapeIndexes,
+                                                            CloudPC::Ptr &inputPrincipalCurvaturesCloud,
+                                                            float thresholdShapeIndexMin,
+                                                            float thresholdShapeIndexMax,
+                                                            float thresholdPrincipalCurvatureMin,
+                                                            CloudXYZ::Ptr &outputCloud,
+                                                            std::vector<float> outputShapeIndexes,
+                                                            CloudPC::Ptr &outputPrincipalCurvaturesCloud)
+{
+    if (
+        (inputCloud->points.size() != shapeIndexes.size()) ||
+        (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size()))
+    {
+        throw std::runtime_error("Input Cloud, Shape Indexes Vector and Principal Curvatures Cloud must have the same size.");
+    }
+
+    float k1, k2, gc;
+
+    for (int i = 0; i < shapeIndexes.size(); i++)
+    {
+        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
+        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
+
+        gc = k1 * k2;
+
+        if (gc > thresholdPrincipalCurvatureMin)
+        {
+            if ((shapeIndexes[i] > thresholdShapeIndexMin) && (shapeIndexes[i] < thresholdShapeIndexMax))
+            {
+                outputCloud->push_back(inputCloud->points[i]);
+                outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
+                outputShapeIndexes.push_back(shapeIndexes[i]);
+            }
+        }
+    }
+}
+
+void Computation::removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep)
+{
+    CloudXYZ::Ptr tempCloud(new CloudXYZ);
+    pcl::copyPointCloud(*inputCloud, indicesToKeep, *tempCloud);
+    *inputCloud = *tempCloud;
+}
+
+void Computation::removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep)
+{
+    CloudPC::Ptr tempCloud(new CloudPC);
+    *tempCloud = *inputCloud;
+
+    inputCloud->points.clear();
+
+    for (int i = 0; i < indicesToKeep.size(); i++)
+    {
+        inputCloud->points.push_back(tempCloud->points[indicesToKeep[i]]);
+    }
 }

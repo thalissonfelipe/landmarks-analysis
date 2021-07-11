@@ -53,6 +53,7 @@ int main(int, char **argv)
         float gfSearchRadius = std::stof(argv[14]);
         std::string features = argv[15];
         std::string featuresThreshold = argv[16];
+        std::string fiducialPoint = argv[17];
 
         struct MainResponse response = Main::run(
             filename,
@@ -70,9 +71,10 @@ int main(int, char **argv)
             nosetipSearchRadius,
             gfSearchRadius,
             features,
-            featuresThreshold);
+            featuresThreshold,
+            fiducialPoint);
 
-        pcl::PointXYZ noseTip = response.noseTip;
+        pcl::PointXYZ point = response.point;
         std::vector<CloudsLogEntry> cloudsLogEntries = response.cloudsLog.getLogs();
         double executionTime = response.executionTime;
 

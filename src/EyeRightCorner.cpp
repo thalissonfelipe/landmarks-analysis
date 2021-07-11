@@ -5,96 +5,8 @@
 #include <pcl/console/print.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/io/pcd_io.h>
-#include "Anisotropy.h"
+#include "GeometricFeatures.h"
 #include "EyeRightCorner.h"
-
-void EyeRightCornerFinder::thresholdByShapeIndex(CloudXYZ::Ptr &inputCloud,
-                                          std::vector<float> shapeIndexes,
-                                          float thresholdMin,
-                                          float thresholdMax,
-                                          CloudXYZ::Ptr &outputCloud,
-                                          std::vector<float> outputShapeIndexes)
-{
-    if (inputCloud->points.size() != shapeIndexes.size())
-    {
-        throw std::runtime_error("Input Cloud and Shape Indexes Vector must have the same size in thresholdByShapeIndex");
-        return;
-    }
-
-    for (int i = 0; i < shapeIndexes.size(); i++)
-    {
-        if ((shapeIndexes[i] > thresholdMin) && (shapeIndexes[i] < thresholdMax))
-        {
-            outputCloud->push_back(inputCloud->points[i]);
-            outputShapeIndexes.push_back(shapeIndexes[i]);
-        }
-    }
-}
-
-void EyeRightCornerFinder::thresholdByGaussianCurvature(CloudXYZ::Ptr &inputCloud,
-                                                 CloudPC::Ptr &inputPrincipalCurvaturesCloud,
-                                                 float thresholdMin,
-                                                 CloudXYZ::Ptr &outputCloud,
-                                                 CloudPC::Ptr &outputPrincipalCurvaturesCloud)
-{
-    if (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size())
-    {
-        throw std::runtime_error("Input Cloud and Principal Curvatures Vector must have the same size in thresholdByGaussianCurvature");
-        return;
-    }
-
-    float k1, k2;
-
-    for (int i = 0; i < inputPrincipalCurvaturesCloud->size(); i++)
-    {
-        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
-        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
-
-        if (k1 * k2 > thresholdMin)
-        {
-            outputCloud->push_back(inputCloud->points[i]);
-            outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
-        }
-    }
-}
-
-void EyeRightCornerFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inputCloud,
-                                                              std::vector<float> shapeIndexes,
-                                                              CloudPC::Ptr &inputPrincipalCurvaturesCloud,
-                                                              float thresholdShapeIndexMin,
-                                                              float thresholdShapeIndexMax,
-                                                              float thresholdPrincipalCurvatureMin,
-                                                              CloudXYZ::Ptr &outputCloud,
-                                                              std::vector<float> outputShapeIndexes,
-                                                              CloudPC::Ptr &outputPrincipalCurvaturesCloud)
-{
-    if (
-        (inputCloud->points.size() != shapeIndexes.size()) ||
-        (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size()))
-    {
-        throw std::runtime_error("Input Cloud, Shape Indexes Vector and Principal Curvatures Cloud must have the same size.");
-    }
-
-    float k1, k2, gc;
-
-    for (int i = 0; i < shapeIndexes.size(); i++)
-    {
-        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
-        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
-
-        gc = k1 * k2;
-
-        if (gc > thresholdPrincipalCurvatureMin)
-        {
-            if ((shapeIndexes[i] > thresholdShapeIndexMin) && (shapeIndexes[i] < thresholdShapeIndexMax))
-            {
-                outputCloud->push_back(inputCloud->points[i]);
-                outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
-                outputShapeIndexes.push_back(shapeIndexes[i]);
-            }
-        }
-    }
-}
 
 pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
                                             float gfSearchRadius,
@@ -122,7 +34,7 @@ pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
 
         pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
 
-        gf = Anisotropy::geometricFeatures(*filteredCloud);
+        gf = GeometricFeaturesComputation::geometricFeatures(*filteredCloud);
         gfs.push_back(gf);
     }
 
@@ -200,7 +112,7 @@ pcl::PointXYZ EyeRightCornerFinder::choosePoint(CloudXYZ::Ptr inputCloud,
         }
 
         std::cout << "Filtered cloud size after " << feats[i] << ": " << filteredCloud->points.size() << std::endl;
-        cloudsLog.add("4." + std::to_string(cloudsLogCounter) + " " + feats[i], filteredCloud);
+        cloudsLog.add("4." + std::to_string(cloudsLogCounter) + " " + feats[i] + " (" + std::to_string(filteredCloud->points.size()) + ")", filteredCloud);
         cloudsLogCounter++;
 
         if (i == feats.size() - 1)
@@ -246,26 +158,6 @@ bool EyeRightCornerFinder::itsAGoodPoint(pcl::PointXYZ noseTip, float xValue, fl
     return distance <= maxDistance;
 }
 
-void EyeRightCornerFinder::removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep)
-{
-    CloudXYZ::Ptr tempCloud(new CloudXYZ);
-    pcl::copyPointCloud(*inputCloud, indicesToKeep, *tempCloud);
-    *inputCloud = *tempCloud;
-}
-
-void EyeRightCornerFinder::removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep)
-{
-    CloudPC::Ptr tempCloud(new CloudPC);
-    *tempCloud = *inputCloud;
-
-    inputCloud->points.clear();
-
-    for (int i = 0; i < indicesToKeep.size(); i++)
-    {
-        inputCloud->points.push_back(tempCloud->points[indicesToKeep[i]]);
-    }
-}
-
 bool EyeRightCornerFinder::savePoint(pcl::PointXYZ noseTip, std::string filename, std::string cloudName)
 {
     if (filename.substr(filename.length() - 3) == "pcd")
@@ -288,25 +180,23 @@ bool EyeRightCornerFinder::savePoint(pcl::PointXYZ noseTip, std::string filename
         }
 
         pcl::io::savePCDFile(filename, *noseTipCloud);
+
         return true;
     }
-    else
+    else if (filename.substr(filename.length() - 3) == "txt")
     {
-        if (filename.substr(filename.length() - 3) == "txt")
+        std::ofstream ofs;
+        ofs.open(filename.c_str(), std::ios_base::app);
+        if (ofs.is_open())
+
         {
-            std::ofstream ofs;
-            ofs.open(filename.c_str(), std::ios_base::app);
-            if (ofs.is_open())
-            {
-                ofs << cloudName << " " << noseTip << std::endl;
-                ofs.close();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            ofs << cloudName << " " << noseTip << std::endl;
+            ofs.close();
+            return true;
         }
+
+        return false;
     }
+
     return true;
 }

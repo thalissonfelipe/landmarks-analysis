@@ -17,39 +17,12 @@ class EyeRightCornerFinder
     typedef pcl::PointCloud<pcl::PrincipalCurvatures> CloudPC;
 
 public:
-    void static removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep);
-
-    void static removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep);
-
-    void static thresholdByShapeIndex(
-        CloudXYZ::Ptr &inputCloud,
-        std::vector<float> shapeIndexes,
-        float thresholdMin,
-        float thresholdMax,
-        CloudXYZ::Ptr &outputCloud,
-        std::vector<float> outputShapeIndexes);
-
-    void static thresholdByGaussianCurvature(
-        CloudXYZ::Ptr &inputCloud,
-        CloudPC::Ptr &inputPrincipalCurvaturesCloud,
-        float thresholdMin,
-        CloudXYZ::Ptr &outputCloud,
-        CloudPC::Ptr &outputPrincipalCurvaturesCloud);
-
-    void static thresholdByShapeIndexAndGaussianCurvature(
-        CloudXYZ::Ptr &inputCloud,
-        std::vector<float> shapeIndexes,
-        CloudPC::Ptr &inputPrincipalCurvaturesCloud,
-        float thresholdShapeIndexMin, float thresholdShapeIndexMax, float thresholdPrincipalCurvatureMin,
-        CloudXYZ::Ptr &outputCloud,
-        std::vector<float> outputShapeIndexes,
-        CloudPC::Ptr &outputPrincipalCurvaturesCloud);
-
-    pcl::PointXYZ static choosePoint(CloudXYZ::Ptr inputCloud,
-                                    float gfSearchRadius,
-                                    std::string features,
-                                    std::string featuresThreshold,
-                                    CloudsLog &cloudsLog);
+    pcl::PointXYZ static choosePoint(
+        CloudXYZ::Ptr inputCloud,
+        float gfSearchRadius,
+        std::string features,
+        std::string featuresThreshold,
+        CloudsLog &cloudsLog);
 
     bool static itsAGoodPoint(pcl::PointXYZ point, float xValue, float yValue, float zValue, float maxDistance);
 

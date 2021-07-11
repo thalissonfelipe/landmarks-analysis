@@ -21,9 +21,7 @@
 #include <nan.h>
 
 #include "../../src/Main.h"
-#include "../../src/NosetipFinder.h"
 #include "../../src/CloudsLog.h"
-#include "../../src/Utils.h"
 
 v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud)
 {
@@ -65,7 +63,7 @@ v8::Local<v8::Array> cloudsLogsEntriestoV8Array(std::vector<CloudsLogEntry> logs
   return response;
 }
 
-NAN_METHOD(FindNoseTip)
+NAN_METHOD(FindFiducialPoint)
 {
   try
   {
@@ -85,6 +83,7 @@ NAN_METHOD(FindNoseTip)
     float gfSearchRadius = info[13]->NumberValue();
     std::string features(*Nan::Utf8String(info[14]));
     std::string featuresThreshold(*Nan::Utf8String(info[15]));
+    std::string fiducialPoint(*Nan::Utf8String(info[16]));
 
     struct MainResponse response = Main::run(
       filename,
@@ -102,18 +101,19 @@ NAN_METHOD(FindNoseTip)
       nosetipSearchRadius,
       gfSearchRadius,
       features,
-      featuresThreshold);
+      featuresThreshold,
+      fiducialPoint);
 
-    pcl::PointXYZ noseTip = response.noseTip;
+    pcl::PointXYZ point = response.point;
     CloudsLog cloudsLog = response.cloudsLog;
 
-    v8::Local<v8::Object> noseTipV8Object = Nan::New<v8::Object>();
-    noseTipV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(noseTip.x));
-    noseTipV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(noseTip.y));
-    noseTipV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(noseTip.z));
+    v8::Local<v8::Object> pointV8Object = Nan::New<v8::Object>();
+    pointV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(point.x));
+    pointV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(point.y));
+    pointV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(point.z));
 
     v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
-    moduleResponse->Set(Nan::New("nosetip").ToLocalChecked(), noseTipV8Object);
+    moduleResponse->Set(Nan::New("point").ToLocalChecked(), pointV8Object);
     moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(cloudsLog.getLogs()));
 
     info.GetReturnValue().Set(moduleResponse);
@@ -137,8 +137,8 @@ using v8::String;
 
 NAN_MODULE_INIT(init)
 {
-  Set(target, New<String>("findNoseTip").ToLocalChecked(),
-      GetFunction(New<FunctionTemplate>(FindNoseTip)).ToLocalChecked());
+  Set(target, New<String>("findFiducialPoint").ToLocalChecked(),
+      GetFunction(New<FunctionTemplate>(FindFiducialPoint)).ToLocalChecked());
 }
 
-NODE_MODULE(nosetip_finder, init)
+NODE_MODULE(fiducial_point_finder, init)

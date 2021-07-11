@@ -20,8 +20,8 @@ add_executable (
   ../../src/NosetipFinder.h
   ../../src/EyeRightCorner.cpp
   ../../src/EyeRightCorner.h
-  ../../src/Anisotropy.cpp
-  ../../src/Anisotropy.h
+  ../../src/GeometricFeatures.cpp
+  ../../src/GeometricFeatures.h
   ../../src/CloudsLog.cpp
   ../../src/CloudsLog.h
   ../../src/Utils.cpp
