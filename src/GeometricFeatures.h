@@ -1,5 +1,6 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 #include <pcl/common/centroid.h>
 #include <pcl/common/pca.h>
 #include <pcl/PCLPointCloud2.h>
@@ -37,6 +38,7 @@ struct GeometricFeatures
 class GeometricFeaturesComputation {
 public:
 	GeometricFeatures static geometricFeatures(pcl::PointCloud<pcl::PointXYZ> cloud_in);
+	void static geometricFeatures(pcl::PointCloud<pcl::PointXYZ> cloud_in, GeometricFeatures* gf);
 	std::string static printGeometricFeatures(GeometricFeatures gf);
 };
 

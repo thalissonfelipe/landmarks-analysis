@@ -40,6 +40,36 @@ CloudXYZ::Ptr Utils::loadCloudFile(std::string filename)
   return cloud;
 }
 
+CloudXYZ::Ptr Utils::loadCloudFile(std::string filename, CloudXYZ::Ptr cloud)
+{
+  if (filename.substr(filename.length() - 3) == "pcd")
+  {
+    if (pcl::io::loadPCDFile(filename, *cloud) == -1)
+    {
+      throw std::runtime_error("Couldn't read PCD file");
+    }
+  }
+  else if (filename.substr(filename.length() - 3) == "obj")
+  {
+    if (pcl::io::loadOBJFile(filename, *cloud) == -1)
+    {
+      throw std::runtime_error("Couldn't read OBJ file");
+    }
+  }
+  else if (filename.substr(filename.length() - 3) == "ply")
+  {
+    if (pcl::io::loadPLYFile(filename, *cloud) == -1)
+    {
+      throw std::runtime_error("Couldn't read PLY file");
+    }
+  }
+  else {
+    throw std::runtime_error("Only pcd, obj and ply cloud are supported");
+  }
+
+  return cloud;
+}
+
 void Utils::saveProcessingResult(std::string outputFilename,
                                  std::string inputCloudFilename,
                                  bool isAGoodNoseTip,

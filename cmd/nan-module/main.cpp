@@ -25,104 +25,104 @@
 
 v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud)
 {
-  int pointCloudSize = pointCloud->points.size();
-  v8::Local<v8::Array> response = Nan::New<v8::Array>(pointCloudSize);
+    int pointCloudSize = pointCloud->points.size();
+    v8::Local<v8::Array> response = Nan::New<v8::Array>(pointCloudSize);
 
-  for (int i = 0; i < pointCloudSize; i++)
-  {
-    pcl::PointXYZ point;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    for (int i = 0; i < pointCloudSize; i++)
+    {
+        pcl::PointXYZ point;
+        v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    point = pointCloud->points[i];
+        point = pointCloud->points[i];
 
-    obj->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(point.x));
-    obj->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(point.y));
-    obj->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(point.z));
-    Nan::Set(response, i, obj);
-  }
+        obj->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(point.x));
+        obj->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(point.y));
+        obj->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(point.z));
+        Nan::Set(response, i, obj);
+    }
 
-  return response;
+    return response;
 }
 
 v8::Local<v8::Array> cloudsLogsEntriestoV8Array(std::vector<CloudsLogEntry> logs)
 {
-  int logsSize = logs.size();
-  v8::Local<v8::Array> response = Nan::New<v8::Array>(logsSize);
+    int logsSize = logs.size();
+    v8::Local<v8::Array> response = Nan::New<v8::Array>(logsSize);
 
-  for (int i = 0; i < logsSize; i++)
-  {
-    CloudsLogEntry log = logs[i];
+    for (int i = 0; i < logsSize; i++)
+    {
+        CloudsLogEntry log = logs[i];
 
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("cloud_label").ToLocalChecked(), Nan::New(log.cloudLabel).ToLocalChecked());
-    obj->Set(Nan::New("cloud").ToLocalChecked(), parsePointCloudToV8Array(log.cloud));
+        v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+        obj->Set(Nan::New("cloud_label").ToLocalChecked(), Nan::New(log.cloudLabel).ToLocalChecked());
+        obj->Set(Nan::New("cloud").ToLocalChecked(), parsePointCloudToV8Array(log.cloud));
 
-    Nan::Set(response, i, obj);
-  }
+        Nan::Set(response, i, obj);
+    }
 
-  return response;
+    return response;
 }
 
 NAN_METHOD(FindFiducialPoint)
 {
-  try
-  {
-    std::string filename(*Nan::Utf8String(info[0]));
-    bool flexibilizeThresholds = info[1]->BooleanValue();
-    bool flexibilizeCrop = info[2]->BooleanValue();
-    int computationRadiusOrKSize = info[3]->NumberValue();
-    std::string computationMethod(*Nan::Utf8String(info[4]));
-    double minGaussianCurvature = info[5]->NumberValue();
-    double shapeIndexLimit = info[6]->NumberValue();
-    float minCropSize = info[7]->NumberValue();
-    float maxCropSize = info[8]->NumberValue();
-    int minPointsToContinue = info[9]->NumberValue();
-    float removeIsolatedPointsRadius = info[10]->NumberValue();
-    int removeIsolatedPointsThreshold = info[11]->NumberValue();
-    int nosetipSearchRadius = info[12]->NumberValue();
-    float gfSearchRadius = info[13]->NumberValue();
-    std::string features(*Nan::Utf8String(info[14]));
-    std::string featuresThreshold(*Nan::Utf8String(info[15]));
-    std::string fiducialPoint(*Nan::Utf8String(info[16]));
+    try
+    {
+        std::string filename(*Nan::Utf8String(info[0]));
+        bool flexibilizeThresholds = info[1]->BooleanValue();
+        bool flexibilizeCrop = info[2]->BooleanValue();
+        int computationRadiusOrKSize = info[3]->NumberValue();
+        std::string computationMethod(*Nan::Utf8String(info[4]));
+        double minGaussianCurvature = info[5]->NumberValue();
+        double shapeIndexLimit = info[6]->NumberValue();
+        float minCropSize = info[7]->NumberValue();
+        float maxCropSize = info[8]->NumberValue();
+        int minPointsToContinue = info[9]->NumberValue();
+        float removeIsolatedPointsRadius = info[10]->NumberValue();
+        int removeIsolatedPointsThreshold = info[11]->NumberValue();
+        int nosetipSearchRadius = info[12]->NumberValue();
+        float gfSearchRadius = info[13]->NumberValue();
+        std::string features(*Nan::Utf8String(info[14]));
+        std::string featuresThreshold(*Nan::Utf8String(info[15]));
+        std::string fiducialPoint(*Nan::Utf8String(info[16]));
 
-    struct MainResponse response = Main::run(
-      filename,
-      flexibilizeThresholds,
-      flexibilizeCrop,
-      computationRadiusOrKSize,
-      computationMethod,
-      minGaussianCurvature,
-      shapeIndexLimit,
-      minCropSize,
-      maxCropSize,
-      minPointsToContinue,
-      removeIsolatedPointsRadius,
-      removeIsolatedPointsThreshold,
-      nosetipSearchRadius,
-      gfSearchRadius,
-      features,
-      featuresThreshold,
-      fiducialPoint);
+        struct MainResponse response = Main::run(
+            filename,
+            flexibilizeThresholds,
+            flexibilizeCrop,
+            computationRadiusOrKSize,
+            computationMethod,
+            minGaussianCurvature,
+            shapeIndexLimit,
+            minCropSize,
+            maxCropSize,
+            minPointsToContinue,
+            removeIsolatedPointsRadius,
+            removeIsolatedPointsThreshold,
+            nosetipSearchRadius,
+            gfSearchRadius,
+            features,
+            featuresThreshold,
+            fiducialPoint);
 
-    pcl::PointXYZ point = response.point;
-    CloudsLog cloudsLog = response.cloudsLog;
+        pcl::PointXYZ point = response.point;
+        CloudsLog cloudsLog = response.cloudsLog;
 
-    v8::Local<v8::Object> pointV8Object = Nan::New<v8::Object>();
-    pointV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(point.x));
-    pointV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(point.y));
-    pointV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(point.z));
+        v8::Local<v8::Object> pointV8Object = Nan::New<v8::Object>();
+        pointV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(point.x));
+        pointV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(point.y));
+        pointV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(point.z));
 
-    v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
-    moduleResponse->Set(Nan::New("point").ToLocalChecked(), pointV8Object);
-    moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(cloudsLog.getLogs()));
+        v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
+        moduleResponse->Set(Nan::New("point").ToLocalChecked(), pointV8Object);
+        moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(cloudsLog.getLogs()));
 
-    info.GetReturnValue().Set(moduleResponse);
-  }
-  catch (std::exception &e)
-  {
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, e.what())));
-  }
+        info.GetReturnValue().Set(moduleResponse);
+    }
+    catch (std::exception &e)
+    {
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+        isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, e.what())));
+    }
 }
 
 using Nan::GetFunction;
@@ -137,8 +137,8 @@ using v8::String;
 
 NAN_MODULE_INIT(init)
 {
-  Set(target, New<String>("findFiducialPoint").ToLocalChecked(),
-      GetFunction(New<FunctionTemplate>(FindFiducialPoint)).ToLocalChecked());
+    Set(target, New<String>("findFiducialPoint").ToLocalChecked(),
+        GetFunction(New<FunctionTemplate>(FindFiducialPoint)).ToLocalChecked());
 }
 
 NODE_MODULE(fiducial_point_finder, init)
