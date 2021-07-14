@@ -21,6 +21,7 @@ public:
 
     CloudXYZ::Ptr static loadCloudFile(std::string filename);
     CloudXYZ::Ptr static loadCloudFile(std::string filename, CloudXYZ::Ptr cloud);
+    void static saveCloud(std::string filename, CloudXYZ::Ptr cloud);
 
     void static saveProcessingResult(
         std::string outputFilename,

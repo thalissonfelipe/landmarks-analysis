@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 
 #include <nan.h>
 #include <pcl/io/pcd_io.h>
@@ -148,6 +149,7 @@ NAN_METHOD(GeometricFeature)
         float kdtreeValue = info[3]->NumberValue();
         float thresholdMin = info[4]->NumberValue();
         float thresholdMax = info[5]->NumberValue();
+        std::string outputFilename(*Nan::Utf8String(info[6]));
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
         Utils::loadCloudFile(filename, cloud);
@@ -168,8 +170,10 @@ NAN_METHOD(GeometricFeature)
             thresholdMax,
             outputCloud);
 
+        Utils::saveCloud(outputFilename, outputCloud);
+
         v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
-        moduleResponse->Set(Nan::New("output_label").ToLocalChecked(), Nan::New("GF - " + feature).ToLocalChecked());
+        moduleResponse->Set(Nan::New("output_label").ToLocalChecked(), Nan::New(outputFilename).ToLocalChecked());
         moduleResponse->Set(Nan::New("output_cloud").ToLocalChecked(), parsePointCloudToV8Array(outputCloud));
         info.GetReturnValue().Set(moduleResponse);
     }

@@ -70,6 +70,11 @@ CloudXYZ::Ptr Utils::loadCloudFile(std::string filename, CloudXYZ::Ptr cloud)
   return cloud;
 }
 
+void Utils::saveCloud(std::string filename, CloudXYZ::Ptr cloud)
+{
+  pcl::io::savePCDFileASCII(filename, *cloud);
+}
+
 void Utils::saveProcessingResult(std::string outputFilename,
                                  std::string inputCloudFilename,
                                  bool isAGoodNoseTip,
