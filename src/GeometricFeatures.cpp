@@ -42,7 +42,7 @@ GeometricFeatures GeometricFeaturesComputation::geometricFeatures(pcl::PointClou
 	gf.gf08 = evCloud[2]/evCloud[0];
 
 	// Verticality
-	gf.gf09 = 1 -abs(v3.dot(eigen_vectors.col(2)));
+	gf.gf09 = 1 - abs(v3.dot(eigen_vectors.col(2)));
 
 	return gf;
 }

@@ -9,7 +9,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
-file(GLOB SOURCE_FILES "main.cpp" "../../src/Pipeline.cpp" "../../src/GeometricFeatures.cpp"  "../../src/Utils.cpp" "../../src/Pipeline.h" "../../src/GeometricFeatures.h" "../../src/Utils.h")
+file(GLOB SOURCE_FILES "main.cpp" "../../src/*.cpp" "../../src/*.h")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")

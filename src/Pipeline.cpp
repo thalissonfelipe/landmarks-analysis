@@ -3,15 +3,18 @@
 #include <pcl/point_cloud.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/features/principal_curvatures.h>
+#include <pcl/filters/extract_indices.h>
 
+#include "Utils.h"
 #include "Pipeline.h"
+#include "Computation.h"
 #include "GeometricFeatures.h"
 
 void Pipeline::normalComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    pcl::PointCloud<pcl::Normal>::Ptr outputNormalCloud
+    pcl::PointCloud<pcl::Normal>::Ptr &outputNormalCloud
 )
 {
     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
@@ -37,11 +40,11 @@ void Pipeline::normalComputation(
 }
 
 void Pipeline::principalCurvaturesComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
-    pcl::PointCloud<pcl::Normal>::Ptr normalInputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+    pcl::PointCloud<pcl::Normal>::Ptr &normalInputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr outputPrincipalCurvaturesCloud
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
 )
 {
     pcl::PrincipalCurvaturesEstimation<pcl::PointXYZ, pcl::Normal, pcl::PrincipalCurvatures> principalCurvaturesEstimation;
@@ -69,7 +72,7 @@ void Pipeline::principalCurvaturesComputation(
 }
 
 void Pipeline::shapeIndexComputation(
-    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principalCurvaturesCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &principalCurvaturesCloud,
     std::vector<float>& outputShapeIndexes,
     std::vector<int>& nanIndices
 )
@@ -158,7 +161,7 @@ void Pipeline::thresholdByGaussianCurvature(
 }
 
 void Pipeline::geometricFeatureSumComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -209,7 +212,7 @@ void Pipeline::geometricFeatureSumComputation(
 }
 
 void Pipeline::geometricFeatureOmnivarianceComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -260,7 +263,7 @@ void Pipeline::geometricFeatureOmnivarianceComputation(
 }
 
 void Pipeline::geometricFeatureEigenentropyComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -311,7 +314,7 @@ void Pipeline::geometricFeatureEigenentropyComputation(
 }
 
 void Pipeline::geometricFeatureAnisotropyComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -362,7 +365,7 @@ void Pipeline::geometricFeatureAnisotropyComputation(
 }
 
 void Pipeline::geometricFeaturePlanarityComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -413,7 +416,7 @@ void Pipeline::geometricFeaturePlanarityComputation(
 }
 
 void Pipeline::geometricFeatureLinearityComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -464,7 +467,7 @@ void Pipeline::geometricFeatureLinearityComputation(
 }
 
 void Pipeline::geometricFeatureSphericityComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -515,7 +518,7 @@ void Pipeline::geometricFeatureSphericityComputation(
 }
 
 void Pipeline::geometricFeatureSurfaceVariationComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -566,7 +569,7 @@ void Pipeline::geometricFeatureSurfaceVariationComputation(
 }
 
 void Pipeline::geometricFeatureVerticalityComputation(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
     std::vector<double>& output
@@ -680,4 +683,111 @@ void Pipeline::thresholdByGeometricFeature(
             outputCloud->push_back(inputCloud->points[i]);
         }
     }
+}
+
+void Pipeline::filterByGeometricFeatures(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
+    std::string feature,
+    std::string kdtreeMethod,
+    float kdtreeValue,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud
+)
+{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
+
+    Pipeline::thresholdByGeometricFeature(
+        cloud,
+        feature,
+        kdtreeMethod,
+        kdtreeValue,
+        thresholdMin,
+        thresholdMax,
+        outputCloud);
+}
+
+void Pipeline::filterByShapeIndex(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,
+    std::string kdtreeMethod,
+    float kdtreeValue,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& outputCloud,
+    std::vector<float>& outputShapeIndexes
+)
+{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
+    indices.clear();
+
+    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::Normal>::Ptr filteredNormalCloud(new pcl::PointCloud<pcl::Normal>);
+
+    Pipeline::normalComputation(filteredCloud, kdtreeMethod, kdtreeValue, normalCloud);
+    pcl::removeNaNNormalsFromPointCloud(*normalCloud, *filteredNormalCloud, indices);
+
+    Computation::removeNonExistingIndices(filteredCloud, indices);
+
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principalCurvaturesCloud(new pcl::PointCloud<pcl::PrincipalCurvatures>);
+    Pipeline::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, kdtreeMethod, kdtreeValue, principalCurvaturesCloud);
+
+    std::vector<float> shapeIndexes;
+    std::vector<int> nanIndices;
+    Pipeline::shapeIndexComputation(principalCurvaturesCloud, shapeIndexes, nanIndices);
+
+    if (nanIndices.size() != filteredCloud->points.size() || nanIndices.size() != principalCurvaturesCloud->points.size())
+    {
+        Computation::removeNonExistingIndices(filteredCloud, nanIndices);
+        Computation::removeNonExistingIndices(principalCurvaturesCloud, nanIndices);
+    }
+
+    Pipeline::thresholdByShapeIndex(
+        filteredCloud,
+        shapeIndexes,
+        thresholdMin,
+        thresholdMax,
+        outputCloud,
+        outputShapeIndexes);
+}
+
+void Pipeline::filterByGaussianCurvature(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
+    std::string kdtreeMethod,
+    float kdtreeValue,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
+)
+{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
+    indices.clear();
+
+    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::Normal>::Ptr filteredNormalCloud(new pcl::PointCloud<pcl::Normal>);
+
+    Pipeline::normalComputation(filteredCloud, kdtreeMethod, kdtreeValue, normalCloud);
+    pcl::removeNaNNormalsFromPointCloud(*normalCloud, *filteredNormalCloud, indices);
+
+    Computation::removeNonExistingIndices(filteredCloud, indices);
+
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principalCurvaturesCloud(new pcl::PointCloud<pcl::PrincipalCurvatures>);
+    Pipeline::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, kdtreeMethod, kdtreeValue, principalCurvaturesCloud);
+
+    Pipeline::thresholdByGaussianCurvature(
+        filteredCloud,
+        principalCurvaturesCloud,
+        thresholdMin,
+        thresholdMax,
+        outputCloud,
+        outputPrincipalCurvaturesCloud);
 }
