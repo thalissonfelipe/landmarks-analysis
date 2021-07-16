@@ -11,9 +11,9 @@
 #include "../../src/Utils.h"
 #include "../../src/CloudsLog.h"
 
-v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud)
+v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ> pointCloud)
 {
-    int pointCloudSize = pointCloud->points.size();
+    int pointCloudSize = pointCloud.points.size();
     v8::Local<v8::Array> response = Nan::New<v8::Array>(pointCloudSize);
 
     for (int i = 0; i < pointCloudSize; i++)
@@ -21,7 +21,7 @@ v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ>::Pt
         pcl::PointXYZ point;
         v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-        point = pointCloud->points[i];
+        point = pointCloud.points[i];
 
         obj->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(point.x));
         obj->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(point.y));
@@ -58,7 +58,8 @@ NAN_METHOD(Pipeline)
     try
     {
         std::string filename(*Nan::Utf8String(info[0]));
-        v8::Local<v8::Array> filters = v8::Local<v8::Array>::Cast(info[1]);
+        std::string outputFilename(*Nan::Utf8String(info[1]));
+        v8::Local<v8::Array> filters = v8::Local<v8::Array>::Cast(info[2]);
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
         Utils::loadCloudFile(filename, cloud);
@@ -149,9 +150,13 @@ NAN_METHOD(Pipeline)
             }
 
             std::cout << "Número de pontos após filtragem: " << filteredCloud->points.size() << " (" << filterStr << ")" << std::endl;
+            cloudsLog.add(filterStr, filteredCloud);
             *cloud = *filteredCloud;
-            cloudsLog.add(filterStr, cloud);
             filteredCloud->points.clear();
+        }
+
+        if (outputFilename != "") {
+            Utils::saveCloud(outputFilename, cloud);
         }
 
         v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
@@ -206,7 +211,7 @@ NAN_METHOD(GaussianCurvature)
 
         v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
         moduleResponse->Set(Nan::New("output_label").ToLocalChecked(), Nan::New("GC").ToLocalChecked());
-        moduleResponse->Set(Nan::New("output_cloud").ToLocalChecked(), parsePointCloudToV8Array(outputCloud));
+        moduleResponse->Set(Nan::New("output_cloud").ToLocalChecked(), parsePointCloudToV8Array(*outputCloud));
         info.GetReturnValue().Set(moduleResponse);
     }
     catch(const std::exception& e)
@@ -261,7 +266,7 @@ NAN_METHOD(ShapeIndex)
 
         v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
         moduleResponse->Set(Nan::New("output_label").ToLocalChecked(), Nan::New("SI").ToLocalChecked());
-        moduleResponse->Set(Nan::New("output_cloud").ToLocalChecked(), parsePointCloudToV8Array(outputCloud));
+        moduleResponse->Set(Nan::New("output_cloud").ToLocalChecked(), parsePointCloudToV8Array(*outputCloud));
         info.GetReturnValue().Set(moduleResponse);
     }
     catch(const std::exception& e)
@@ -307,7 +312,7 @@ NAN_METHOD(GeometricFeature)
 
         v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
         moduleResponse->Set(Nan::New("output_label").ToLocalChecked(), Nan::New(outputFilename).ToLocalChecked());
-        moduleResponse->Set(Nan::New("output_cloud").ToLocalChecked(), parsePointCloudToV8Array(outputCloud));
+        moduleResponse->Set(Nan::New("output_cloud").ToLocalChecked(), parsePointCloudToV8Array(*outputCloud));
         info.GetReturnValue().Set(moduleResponse);
     }
     catch(const std::exception& e)

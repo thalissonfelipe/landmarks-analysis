@@ -47,11 +47,15 @@ GeometricFeatures GeometricFeaturesComputation::geometricFeatures(pcl::PointClou
 	return gf;
 }
 
-void GeometricFeaturesComputation::geometricFeatures(pcl::PointCloud<pcl::PointXYZ> cloud_in, GeometricFeatures* gf)
+bool GeometricFeaturesComputation::geometricFeatures(pcl::PointCloud<pcl::PointXYZ> cloud_in, GeometricFeatures* gf)
 {
+	if (cloud_in.points.size() < 3) {
+		return false;
+	}
+
 	pcl::PCA<pcl::PointXYZ> pca;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::copyPointCloud(cloud_in,*cloud);
+	pcl::copyPointCloud(cloud_in, *cloud);
 	pca.setInputCloud(cloud);
 	Eigen::Vector3f evCloud = pca.getEigenValues();
 	Eigen::Matrix3f eigen_vectors = pca.getEigenVectors();
@@ -83,6 +87,8 @@ void GeometricFeaturesComputation::geometricFeatures(pcl::PointCloud<pcl::PointX
 
 	// Verticality
 	gf->gf09 = 1 -abs(v3.dot(eigen_vectors.col(2)));
+
+	return true;
 }
 
 std::string GeometricFeaturesComputation::printGeometricFeatures(GeometricFeatures gf){

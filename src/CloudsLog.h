@@ -13,7 +13,7 @@
 struct CloudsLogEntry
 {
   std::string cloudLabel;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
+  pcl::PointCloud<pcl::PointXYZ> cloud;
 };
 
 class CloudsLog

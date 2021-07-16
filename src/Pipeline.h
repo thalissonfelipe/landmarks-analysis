@@ -34,55 +34,64 @@ public:
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeatureOmnivarianceComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeatureEigenentropyComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeatureAnisotropyComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeaturePlanarityComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeatureLinearityComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeatureSphericityComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeatureSurfaceVariationComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static geometricFeatureVerticalityComputation(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,
-        std::vector<double>& output);
+        std::vector<double>& output,
+        std::vector<int>& indicesToKeep);
 
     void static thresholdByShapeIndex(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,

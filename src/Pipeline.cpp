@@ -164,7 +164,8 @@ void Pipeline::geometricFeatureSumComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -185,8 +186,12 @@ void Pipeline::geometricFeatureSumComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf01);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf01);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -197,12 +202,16 @@ void Pipeline::geometricFeatureSumComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureSumComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf01);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf01);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -215,7 +224,8 @@ void Pipeline::geometricFeatureOmnivarianceComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -236,8 +246,12 @@ void Pipeline::geometricFeatureOmnivarianceComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf02);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf02);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -248,12 +262,16 @@ void Pipeline::geometricFeatureOmnivarianceComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureOmnivarianceComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf02);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf02);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -266,7 +284,8 @@ void Pipeline::geometricFeatureEigenentropyComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -287,8 +306,12 @@ void Pipeline::geometricFeatureEigenentropyComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf03);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf03);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -299,12 +322,16 @@ void Pipeline::geometricFeatureEigenentropyComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureEigenentropyComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf03);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf03);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -317,7 +344,8 @@ void Pipeline::geometricFeatureAnisotropyComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -338,8 +366,12 @@ void Pipeline::geometricFeatureAnisotropyComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf04);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf04);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -350,12 +382,16 @@ void Pipeline::geometricFeatureAnisotropyComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureAnisotropyComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf04);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf04);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -368,7 +404,8 @@ void Pipeline::geometricFeaturePlanarityComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -389,8 +426,12 @@ void Pipeline::geometricFeaturePlanarityComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf05);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf05);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -401,12 +442,16 @@ void Pipeline::geometricFeaturePlanarityComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeaturePlanarityComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf05);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf05);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -419,7 +464,8 @@ void Pipeline::geometricFeatureLinearityComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -440,8 +486,12 @@ void Pipeline::geometricFeatureLinearityComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf06);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf06);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -452,12 +502,16 @@ void Pipeline::geometricFeatureLinearityComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureLinearityComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf06);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf06);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -470,7 +524,8 @@ void Pipeline::geometricFeatureSphericityComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -491,8 +546,12 @@ void Pipeline::geometricFeatureSphericityComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf07);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf07);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -503,12 +562,16 @@ void Pipeline::geometricFeatureSphericityComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureSphericityComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf07);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf07);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -521,7 +584,8 @@ void Pipeline::geometricFeatureSurfaceVariationComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -542,8 +606,12 @@ void Pipeline::geometricFeatureSurfaceVariationComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf08);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf08);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -554,12 +622,16 @@ void Pipeline::geometricFeatureSurfaceVariationComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureSurfaceVariationComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf08);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf08);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -572,7 +644,8 @@ void Pipeline::geometricFeatureVerticalityComputation(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& inputCloud,
     std::string kdtreeMethod,
     float kdtreeValue,
-    std::vector<double>& output
+    std::vector<double>& output,
+    std::vector<int>& indicesToKeep
 )
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -593,8 +666,12 @@ void Pipeline::geometricFeatureVerticalityComputation(
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf09);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf09);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else if (kdtreeMethod == "k")
@@ -605,12 +682,16 @@ void Pipeline::geometricFeatureVerticalityComputation(
             {
                 throw std::runtime_error("Could not search points (k neighbors): geometricFeatureVerticalityComputation");
             }
-            
+
             GeometricFeatures gf;
             pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*inputCloud, points_index_vector[i], *filteredCloud);
-            GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf);
-            output.push_back(gf.gf09);
+
+            if (GeometricFeaturesComputation::geometricFeatures(*filteredCloud, &gf))
+            {
+                output.push_back(gf.gf09);
+                indicesToKeep.push_back(i);
+            }
         }
     }
     else
@@ -630,46 +711,49 @@ void Pipeline::thresholdByGeometricFeature(
 )
 {
     std::vector<double> gfValues;
+    std::vector<int> indicesToKeep;
 
     if (feature == "sum")
     {
-        Pipeline::geometricFeatureSumComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureSumComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "omnivariance")
     {
-        Pipeline::geometricFeatureOmnivarianceComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureOmnivarianceComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "eigenentropy")
     {
-        Pipeline::geometricFeatureEigenentropyComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureEigenentropyComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "anisotropy")
     {
-        Pipeline::geometricFeatureAnisotropyComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureAnisotropyComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "planarity")
     {
-        Pipeline::geometricFeaturePlanarityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeaturePlanarityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "linearity")
     {
-        Pipeline::geometricFeatureLinearityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureLinearityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "sphericity")
     {
-        Pipeline::geometricFeatureSphericityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureSphericityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "surfaceVariation")
     {
-        Pipeline::geometricFeatureSurfaceVariationComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureSurfaceVariationComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else if (feature == "verticality")
     {
-        Pipeline::geometricFeatureVerticalityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues);
+        Pipeline::geometricFeatureVerticalityComputation(inputCloud, kdtreeMethod, kdtreeValue, gfValues, indicesToKeep);
     }
     else {
         throw std::runtime_error("Invalid feature!");
     }
+
+    Computation::removeNonExistingIndices(inputCloud, indicesToKeep);
 
     if (inputCloud->points.size() != gfValues.size())
     {
