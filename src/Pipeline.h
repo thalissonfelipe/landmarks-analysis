@@ -109,6 +109,30 @@ public:
         pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
         pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud);
 
+    void static thresholdByMeanCurvature(
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &inputPrincipalCurvaturesCloud,
+        float thresholdMin,
+        float thresholdMax,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud);
+
+    void static thresholdByPrincipalCurvatureRatio(
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &inputPrincipalCurvaturesCloud,
+        float thresholdMin,
+        float thresholdMax,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud);
+
+    void static thresholdByCurvedness(
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &inputPrincipalCurvaturesCloud,
+        float thresholdMin,
+        float thresholdMax,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud);
+
     void static thresholdByGeometricFeature(
         pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
         std::string feature,
@@ -137,6 +161,33 @@ public:
         std::vector<float> &outputShapeIndexes);
 
     void static filterByGaussianCurvature(
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+        std::string kdtreeMethod,
+        float kdtreeValue,
+        float thresholdMin,
+        float thresholdMax,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud);
+
+    void static filterByMeanCurvature(
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+        std::string kdtreeMethod,
+        float kdtreeValue,
+        float thresholdMin,
+        float thresholdMax,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud);
+
+    void static filterByPrincipalCurvatureRatio(
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+        std::string kdtreeMethod,
+        float kdtreeValue,
+        float thresholdMin,
+        float thresholdMax,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud);
+
+    void static filterByCurvedness(
         pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
         std::string kdtreeMethod,
         float kdtreeValue,

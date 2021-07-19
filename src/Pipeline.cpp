@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -153,6 +155,101 @@ void Pipeline::thresholdByGaussianCurvature(
         gc = k1 * k2;
 
         if (gc >= thresholdMin && gc <= thresholdMax)
+        {
+            outputCloud->push_back(inputCloud->points[i]);
+            outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
+        }
+    }
+}
+
+void Pipeline::thresholdByMeanCurvature(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &inputPrincipalCurvaturesCloud,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
+)
+{
+    if (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size())
+    {
+        throw std::runtime_error("Input Cloud and Principal Curvatures Vector must have the same size in thresholdByMeanCurvature function");
+    }
+
+    float k1, k2, mean;
+
+    for (int i = 0; i < inputPrincipalCurvaturesCloud->size(); i++)
+    {
+        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
+        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
+        mean = (k1 + k2) / 2;
+
+        if (mean >= thresholdMin && mean <= thresholdMax)
+        {
+            outputCloud->push_back(inputCloud->points[i]);
+            outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
+        }
+    }
+}
+
+void Pipeline::thresholdByPrincipalCurvatureRatio(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &inputPrincipalCurvaturesCloud,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
+)
+{
+    if (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size())
+    {
+        throw std::runtime_error("Input Cloud and Principal Curvatures Vector must have the same size in thresholdByMeanCurvature function");
+    }
+
+    float k1, k2, ratio;
+
+    for (int i = 0; i < inputPrincipalCurvaturesCloud->size(); i++)
+    {
+        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
+        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
+
+        if (k2 == 0) {
+            continue;
+        }
+
+        ratio = k1 / k2;
+
+        if (ratio >= thresholdMin && ratio <= thresholdMax)
+        {
+            outputCloud->push_back(inputCloud->points[i]);
+            outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
+        }
+    }
+}
+
+void Pipeline::thresholdByCurvedness(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &inputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &inputPrincipalCurvaturesCloud,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
+)
+{
+    if (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size())
+    {
+        throw std::runtime_error("Input Cloud and Principal Curvatures Vector must have the same size in thresholdByMeanCurvature function");
+    }
+
+    float k1, k2, curvedness;
+
+    for (int i = 0; i < inputPrincipalCurvaturesCloud->size(); i++)
+    {
+        k1 = inputPrincipalCurvaturesCloud->points[i].pc1;
+        k2 = inputPrincipalCurvaturesCloud->points[i].pc2;
+        curvedness = sqrt(((k1 * k1) + (k2 * k2)) / 2);
+
+        if (curvedness >= thresholdMin && curvedness <= thresholdMax)
         {
             outputCloud->push_back(inputCloud->points[i]);
             outputPrincipalCurvaturesCloud->push_back(inputPrincipalCurvaturesCloud->points[i]);
@@ -868,6 +965,114 @@ void Pipeline::filterByGaussianCurvature(
     Pipeline::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, kdtreeMethod, kdtreeValue, principalCurvaturesCloud);
 
     Pipeline::thresholdByGaussianCurvature(
+        filteredCloud,
+        principalCurvaturesCloud,
+        thresholdMin,
+        thresholdMax,
+        outputCloud,
+        outputPrincipalCurvaturesCloud);
+}
+
+void Pipeline::filterByMeanCurvature(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
+    std::string kdtreeMethod,
+    float kdtreeValue,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
+)
+{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
+    indices.clear();
+
+    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::Normal>::Ptr filteredNormalCloud(new pcl::PointCloud<pcl::Normal>);
+
+    Pipeline::normalComputation(filteredCloud, kdtreeMethod, kdtreeValue, normalCloud);
+    pcl::removeNaNNormalsFromPointCloud(*normalCloud, *filteredNormalCloud, indices);
+
+    Computation::removeNonExistingIndices(filteredCloud, indices);
+
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principalCurvaturesCloud(new pcl::PointCloud<pcl::PrincipalCurvatures>);
+    Pipeline::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, kdtreeMethod, kdtreeValue, principalCurvaturesCloud);
+
+    Pipeline::thresholdByMeanCurvature(
+        filteredCloud,
+        principalCurvaturesCloud,
+        thresholdMin,
+        thresholdMax,
+        outputCloud,
+        outputPrincipalCurvaturesCloud);
+}
+
+void Pipeline::filterByPrincipalCurvatureRatio(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
+    std::string kdtreeMethod,
+    float kdtreeValue,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
+)
+{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
+    indices.clear();
+
+    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::Normal>::Ptr filteredNormalCloud(new pcl::PointCloud<pcl::Normal>);
+
+    Pipeline::normalComputation(filteredCloud, kdtreeMethod, kdtreeValue, normalCloud);
+    pcl::removeNaNNormalsFromPointCloud(*normalCloud, *filteredNormalCloud, indices);
+
+    Computation::removeNonExistingIndices(filteredCloud, indices);
+
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principalCurvaturesCloud(new pcl::PointCloud<pcl::PrincipalCurvatures>);
+    Pipeline::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, kdtreeMethod, kdtreeValue, principalCurvaturesCloud);
+
+    Pipeline::thresholdByPrincipalCurvatureRatio(
+        filteredCloud,
+        principalCurvaturesCloud,
+        thresholdMin,
+        thresholdMax,
+        outputCloud,
+        outputPrincipalCurvaturesCloud);
+}
+
+void Pipeline::filterByCurvedness(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
+    std::string kdtreeMethod,
+    float kdtreeValue,
+    float thresholdMin,
+    float thresholdMax,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloud,
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr &outputPrincipalCurvaturesCloud
+)
+{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
+    indices.clear();
+
+    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::Normal>::Ptr filteredNormalCloud(new pcl::PointCloud<pcl::Normal>);
+
+    Pipeline::normalComputation(filteredCloud, kdtreeMethod, kdtreeValue, normalCloud);
+    pcl::removeNaNNormalsFromPointCloud(*normalCloud, *filteredNormalCloud, indices);
+
+    Computation::removeNonExistingIndices(filteredCloud, indices);
+
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principalCurvaturesCloud(new pcl::PointCloud<pcl::PrincipalCurvatures>);
+    Pipeline::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, kdtreeMethod, kdtreeValue, principalCurvaturesCloud);
+
+    Pipeline::thresholdByCurvedness(
         filteredCloud,
         principalCurvaturesCloud,
         thresholdMin,

@@ -133,6 +133,58 @@ NAN_METHOD(Pipeline)
 
                 outputPrincipalCurvaturesCloud->points.clear();
             }
+            else if (filterStr == "gaussianCurvature")
+            {
+                Pipeline::filterByGaussianCurvature(
+                    cloud,
+                    kdtreeMethodStr,
+                    kdtreeValueFloat,
+                    minThresholdFloat,
+                    maxThresholdFloat,
+                    filteredCloud,
+                    outputPrincipalCurvaturesCloud);
+
+                outputPrincipalCurvaturesCloud->points.clear();
+            }
+            else if (filterStr == "principalCurvatureRatio")
+            {
+                Pipeline::filterByPrincipalCurvatureRatio(
+                    cloud,
+                    kdtreeMethodStr,
+                    kdtreeValueFloat,
+                    minThresholdFloat,
+                    maxThresholdFloat,
+                    filteredCloud,
+                    outputPrincipalCurvaturesCloud);
+
+                outputPrincipalCurvaturesCloud->points.clear();
+            }
+            else if (filterStr == "meanCurvature")
+            {
+                Pipeline::filterByMeanCurvature(
+                    cloud,
+                    kdtreeMethodStr,
+                    kdtreeValueFloat,
+                    minThresholdFloat,
+                    maxThresholdFloat,
+                    filteredCloud,
+                    outputPrincipalCurvaturesCloud);
+
+                outputPrincipalCurvaturesCloud->points.clear();
+            }
+            else if (filterStr == "curvedness")
+            {
+                Pipeline::filterByCurvedness(
+                    cloud,
+                    kdtreeMethodStr,
+                    kdtreeValueFloat,
+                    minThresholdFloat,
+                    maxThresholdFloat,
+                    filteredCloud,
+                    outputPrincipalCurvaturesCloud);
+
+                outputPrincipalCurvaturesCloud->points.clear();
+            }
             else {
                 Pipeline::filterByGeometricFeatures(
                     cloud,
