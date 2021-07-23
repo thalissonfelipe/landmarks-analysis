@@ -8,6 +8,7 @@
 #include <pcl/filters/extract_indices.h>
 
 #include "../../src/Pipeline.h"
+#include "../../src/PipelineMain.h"
 #include "../../src/Utils.h"
 #include "../../src/CloudsLog.h"
 
@@ -59,29 +60,18 @@ NAN_METHOD(Pipeline)
     {
         std::string filename(*Nan::Utf8String(info[0]));
         std::string outputFilename(*Nan::Utf8String(info[1]));
-        v8::Local<v8::Array> filters = v8::Local<v8::Array>::Cast(info[2]);
+        v8::Local<v8::Array> filtersv8 = v8::Local<v8::Array>::Cast(info[2]);
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-        Utils::loadCloudFile(filename, cloud);
+        std::vector<std::string> filters;
+        std::vector<std::string> kdtreeMethods;
+        std::vector<float> kdtreeValues;
+        std::vector<float> minThresholds;
+        std::vector<float> maxThresholds;
 
-        std::cout << "Número de pontos iniciais: " << cloud->points.size() << std::endl;
-
-        std::vector<float> shapeIndexes;
-        pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr outputPrincipalCurvaturesCloud(new pcl::PointCloud<pcl::PrincipalCurvatures>);
-
-        pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
-
-        CloudsLog cloudsLog;
-
-        for (int i = 0; i < filters->Length(); i++)
+        for (int i = 0; i < filtersv8->Length(); i++)
         {
-            v8::Local<v8::Object> filter = filters->Get(i)->ToObject();
+            v8::Local<v8::Object> filter = filtersv8->Get(i)->ToObject();
             v8::Local<v8::Value> filterName = Nan::Get(filter, Nan::New("filterName").ToLocalChecked()).ToLocalChecked();
-
-            // if (Nan::HasOwnProperty(filter, Nan::New("params").ToLocalChecked()).FromMaybe(false))
-            // {
-            //     std::cout << "Tem sim!" << std::endl;
-            // }
 
             // v8::Local<v8::Object> params = filter->ToObject();
             // v8::Local<v8::Object> params = Nan::Get(filter, Nan::New("params").ToLocalChecked()).ToLocalChecked().ToObject();
@@ -100,119 +90,28 @@ NAN_METHOD(Pipeline)
             float minThresholdFloat = minThreshold->NumberValue();
             float maxThresholdFloat = maxThreshold->NumberValue();
 
-            // std::cout << filterStr << std::endl;
-            // std::cout << kdtreeMethodStr << std::endl;
-            // std::cout << kdtreeValueFloat << std::endl;
-            // std::cout << minThresholdFloat << std::endl;
-            // std::cout << maxThresholdFloat << std::endl;
-
-            if (filterStr == "shapeIndex")
-            {
-                Pipeline::filterByShapeIndex(
-                    cloud,
-                    kdtreeMethodStr,
-                    kdtreeValueFloat,
-                    minThresholdFloat,
-                    maxThresholdFloat,
-                    filteredCloud,
-                    shapeIndexes);
-
-                // not using for now
-                shapeIndexes.clear();
-            }
-            else if (filterStr == "gaussianCurvature")
-            {
-                Pipeline::filterByGaussianCurvature(
-                    cloud,
-                    kdtreeMethodStr,
-                    kdtreeValueFloat,
-                    minThresholdFloat,
-                    maxThresholdFloat,
-                    filteredCloud,
-                    outputPrincipalCurvaturesCloud);
-
-                outputPrincipalCurvaturesCloud->points.clear();
-            }
-            else if (filterStr == "gaussianCurvature")
-            {
-                Pipeline::filterByGaussianCurvature(
-                    cloud,
-                    kdtreeMethodStr,
-                    kdtreeValueFloat,
-                    minThresholdFloat,
-                    maxThresholdFloat,
-                    filteredCloud,
-                    outputPrincipalCurvaturesCloud);
-
-                outputPrincipalCurvaturesCloud->points.clear();
-            }
-            else if (filterStr == "principalCurvatureRatio")
-            {
-                Pipeline::filterByPrincipalCurvatureRatio(
-                    cloud,
-                    kdtreeMethodStr,
-                    kdtreeValueFloat,
-                    minThresholdFloat,
-                    maxThresholdFloat,
-                    filteredCloud,
-                    outputPrincipalCurvaturesCloud);
-
-                outputPrincipalCurvaturesCloud->points.clear();
-            }
-            else if (filterStr == "meanCurvature")
-            {
-                Pipeline::filterByMeanCurvature(
-                    cloud,
-                    kdtreeMethodStr,
-                    kdtreeValueFloat,
-                    minThresholdFloat,
-                    maxThresholdFloat,
-                    filteredCloud,
-                    outputPrincipalCurvaturesCloud);
-
-                outputPrincipalCurvaturesCloud->points.clear();
-            }
-            else if (filterStr == "curvedness")
-            {
-                Pipeline::filterByCurvedness(
-                    cloud,
-                    kdtreeMethodStr,
-                    kdtreeValueFloat,
-                    minThresholdFloat,
-                    maxThresholdFloat,
-                    filteredCloud,
-                    outputPrincipalCurvaturesCloud);
-
-                outputPrincipalCurvaturesCloud->points.clear();
-            }
-            else {
-                Pipeline::filterByGeometricFeatures(
-                    cloud,
-                    filterStr,
-                    kdtreeMethodStr,
-                    kdtreeValueFloat,
-                    minThresholdFloat,
-                    maxThresholdFloat,
-                    filteredCloud);
-            }
-
-            if (filteredCloud->points.size() == 0)
-            {
-                throw std::runtime_error("Número de pontos após filtragens é 0! Por favor, escolha outros parâmetros.");
-            }
-
-            std::cout << "Número de pontos após filtragem: " << filteredCloud->points.size() << " (" << filterStr << ")" << std::endl;
-            cloudsLog.add(filterStr, filteredCloud);
-            *cloud = *filteredCloud;
-            filteredCloud->points.clear();
+            filters.push_back(filterStr);
+            kdtreeMethods.push_back(kdtreeMethodStr);
+            kdtreeValues.push_back(kdtreeValueFloat);
+            minThresholds.push_back(minThresholdFloat);
+            maxThresholds.push_back(maxThresholdFloat);
         }
 
+        PipelineMainResponse response = PipelineMain::run(
+            filename,
+            outputFilename,
+            filters,
+            kdtreeMethods,
+            kdtreeValues,
+            minThresholds,
+            maxThresholds);
+
         if (outputFilename != "") {
-            Utils::saveCloud(outputFilename, cloud);
+            Utils::saveCloud(outputFilename, response.lastFilteredCloud);
         }
 
         v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
-        moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(cloudsLog.getLogs()));
+        moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(response.cloudsLog.getLogs()));
         info.GetReturnValue().Set(moduleResponse);
     }
     catch(const std::exception& e)

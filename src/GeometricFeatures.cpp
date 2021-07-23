@@ -65,7 +65,7 @@ bool GeometricFeaturesComputation::geometricFeatures(pcl::PointCloud<pcl::PointX
 	gf->gf01 = evCloud.sum();
 
 	// Omnivariance : Dá sempre 1
-	gf->gf02 = pow(evCloud.prod(),1/3);
+	gf->gf02 = pow(evCloud.prod(),(1.0/3.0));
 
 	// Eigenentropy
 	gf->gf03 = -evCloud[0]*log(evCloud[0]) -evCloud[1]*log(evCloud[1]) -evCloud[2]*log(evCloud[2]);
