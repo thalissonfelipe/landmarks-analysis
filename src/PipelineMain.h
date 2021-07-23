@@ -29,6 +29,15 @@ public:
         std::vector<float>& kdtreeValues,
         std::vector<float>& minThresholds,
         std::vector<float>& maxThresholds);
+
+    void static runv2(
+        pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,
+        std::vector<std::string>& filters,
+        std::vector<std::string>& kdtreeMethods,
+        std::vector<float>& kdtreeValues,
+        std::vector<float>& minThresholds,
+        std::vector<float>& maxThresholds,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr& outputCloud);
 };
 
 #endif //PIPELINE_MAIN_H

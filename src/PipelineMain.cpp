@@ -148,3 +148,120 @@ PipelineMainResponse PipelineMain::run(
 
     return response;
 }
+
+void PipelineMain::runv2(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,
+    std::vector<std::string>& filters,
+    std::vector<std::string>& kdtreeMethods,
+    std::vector<float>& kdtreeValues,
+    std::vector<float>& minThresholds,
+    std::vector<float>& maxThresholds,
+    pcl::PointCloud<pcl::PointXYZ>::Ptr& outputCloud
+)
+{
+    std::vector<float> shapeIndexes;
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr outputPrincipalCurvaturesCloud(new pcl::PointCloud<pcl::PrincipalCurvatures>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr filteredCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    for (int i = 0; i < filters.size(); i++) {
+        if (filters[i] == "shapeIndex")
+        {
+            Pipeline::filterByShapeIndex(
+                cloud,
+                kdtreeMethods[i],
+                kdtreeValues[i],
+                minThresholds[i],
+                maxThresholds[i],
+                filteredCloud,
+                shapeIndexes);
+
+            // not using for now
+            shapeIndexes.clear();
+        }
+        else if (filters[i] == "gaussianCurvature")
+        {
+            Pipeline::filterByGaussianCurvature(
+                cloud,
+                kdtreeMethods[i],
+                kdtreeValues[i],
+                minThresholds[i],
+                maxThresholds[i],
+                filteredCloud,
+                outputPrincipalCurvaturesCloud);
+
+            outputPrincipalCurvaturesCloud->points.clear();
+        }
+        else if (filters[i] == "gaussianCurvature")
+        {
+            Pipeline::filterByGaussianCurvature(
+                cloud,
+                kdtreeMethods[i],
+                kdtreeValues[i],
+                minThresholds[i],
+                maxThresholds[i],
+                filteredCloud,
+                outputPrincipalCurvaturesCloud);
+
+            outputPrincipalCurvaturesCloud->points.clear();
+        }
+        else if (filters[i] == "principalCurvatureRatio")
+        {
+            Pipeline::filterByPrincipalCurvatureRatio(
+                cloud,
+                kdtreeMethods[i],
+                kdtreeValues[i],
+                minThresholds[i],
+                maxThresholds[i],
+                filteredCloud,
+                outputPrincipalCurvaturesCloud);
+
+            outputPrincipalCurvaturesCloud->points.clear();
+        }
+        else if (filters[i] == "meanCurvature")
+        {
+            Pipeline::filterByMeanCurvature(
+                cloud,
+                kdtreeMethods[i],
+                kdtreeValues[i],
+                minThresholds[i],
+                maxThresholds[i],
+                filteredCloud,
+                outputPrincipalCurvaturesCloud);
+
+            outputPrincipalCurvaturesCloud->points.clear();
+        }
+        else if (filters[i] == "curvedness")
+        {
+            Pipeline::filterByCurvedness(
+                cloud,
+                kdtreeMethods[i],
+                kdtreeValues[i],
+                minThresholds[i],
+                maxThresholds[i],
+                filteredCloud,
+                outputPrincipalCurvaturesCloud);
+
+            outputPrincipalCurvaturesCloud->points.clear();
+        }
+        else {
+            Pipeline::filterByGeometricFeatures(
+                cloud,
+                filters[i],
+                kdtreeMethods[i],
+                kdtreeValues[i],
+                minThresholds[i],
+                maxThresholds[i],
+                filteredCloud);
+        }
+
+        if (filteredCloud->points.size() == 0)
+        {
+            throw std::runtime_error("Número de pontos após filtragens é 0! Por favor, escolha outros parâmetros.");
+        }
+
+        *cloud = *filteredCloud;
+        filteredCloud->points.clear();
+    }
+
+    // *outputCloud = *cloud;
+}
