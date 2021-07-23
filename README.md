@@ -95,3 +95,23 @@ Exclusive parameters for C++ regular build **(in this order)**:
 - 18 - A CSV file where eventual errors will be written - `STRING`
 
 Obs: If you don't pass the parameter 16 and parameter 15 is set as `visualizar`, you will be prompted by the terminal to input if the result is a good nosetip or not.
+
+## Pipeline
+
+```shel
+git checkout pipelines
+```
+
+Entre dentro da pasta cmd/regularv2 e digite:
+
+```shell
+cmake .
+```
+
+Depois digite `make`.
+
+Se tudo ocorreu bem, o executável estará dentro da pasta build. Para rodar o executável digite:
+
+```shel
+./experiments
+```
