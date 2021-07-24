@@ -40,16 +40,21 @@ bool nearly_equal(double a1, double a2, double epsilon)
   return std::abs(a1 - a2) < epsilon * pow (2.0, static_cast<int> (std::log2(std::max(std::abs(a1), std::abs(a2)))));
 }
 
-int main(int, char **argv)
+void runExperiments(
+    std::string pointType,
+    std::vector<std::string>& filters,
+    std::vector<std::string>& kdtreeMethods,
+    std::vector<float>& kdtreeValues,
+    std::vector<float>& minThresholds,
+    std::vector<float>& maxThresholds
+)
 {
     const int nFolders = 104;
-    std::string pointType = argv[1]; // left-eye, right-eye, nose-tip
 
-    std::vector<std::string> filters{"sum"};
-    std::vector<std::string> kdtreeMethods{"radius"};
-    std::vector<float> kdtreeValues{10};
-    std::vector<float> minThresholds{30};
-    std::vector<float> maxThresholds{40};
+    std::ofstream myfile;
+    myfile.open(pointType + "1.txt"); // std::ios_base::app
+
+    myfile << "cloud,original_size,filtered_size,contains" << std::endl;
 
     for (int i = 0; i <= nFolders; i++)
     {
@@ -68,44 +73,48 @@ int main(int, char **argv)
             std::string landmarkFilename = fs::path(landmarkPath).filename();
             std::string cloudPath = cloudsPath + landmarkFilename;
 
+            myfile << landmarkFilename << ",";
+
             if (has_suffix(landmarkFilename, ".pcd"))
             {
-                auto totalStart = std::chrono::steady_clock::now();
-
                 CloudXYZ::Ptr landmarkCloud(new CloudXYZ);
                 if (pcl::io::loadPCDFile(landmarkPath, *landmarkCloud) == -1)
                 {
+                    myfile << "null,null,null" << std::endl;
                     continue;
                 }
 
                 CloudXYZ::Ptr cloud(new CloudXYZ);
                 if (pcl::io::loadPCDFile(cloudPath, *cloud) == -1)
                 {
+                    myfile << "null,null,null" << std::endl;
                     continue;
                 }
 
-                CloudXYZ::Ptr filteredCloud(new CloudXYZ);
+                myfile << cloud->points.size() << ",";
 
-                std::cout << "Original cloud size: " << cloud->points.size();
-
-                PipelineMain::runv2(
-                    cloud,
-                    filters,
-                    kdtreeMethods,
-                    kdtreeValues,
-                    minThresholds,
-                    maxThresholds,
-                    filteredCloud);
+                try
+                {
+                    PipelineMain::run(
+                        cloud,
+                        filters,
+                        kdtreeMethods,
+                        kdtreeValues,
+                        minThresholds,
+                        maxThresholds);
+                }
+                catch (const std::exception& e) {
+                   myfile << "0,0" << std::endl;
+                   continue;
+                }
 
                 double lx = landmarkCloud->points[0].x;
                 double ly = landmarkCloud->points[0].y;
                 double lz = landmarkCloud->points[0].z;
 
-                std::cout << " Filtered cloud size: " << cloud->points.size();
-                std::cout << " Landmark in filtered cloud? ";
+                myfile << cloud->points.size() << ",";
 
-                // cloud, original_size, filtered_size, boolean
-
+                bool exists = false;
                 for (int j = 0; j < cloud->points.size(); j++)
                 {
                     double fx = cloud->points[j].x;
@@ -114,18 +123,39 @@ int main(int, char **argv)
 
                     if ((nearly_equal(fx, lx, EPSILON)) && (nearly_equal(fy, ly, EPSILON)) && (nearly_equal(fz, lz, EPSILON)))
                     {
-                        std::cout << "Yes!";
+                        myfile << true;
+                        exists = true;
                         break;
                     }
                 }
 
-                auto totalEnd = std::chrono::steady_clock::now();
-                auto totalDiff = totalEnd - totalStart;
-                double executionTime = std::chrono::duration<double, std::milli>(totalDiff).count();
+                if (!exists)
+                {
+                    myfile << false;
+                }
 
-                std::cout << "\n\tExecution time: " << executionTime << std::endl;;
+                myfile << std::endl;
             }
         }
-        break;
     }
+
+    myfile.close();
+}
+
+int main(int, char **argv)
+{
+    // auto totalStart = std::chrono::steady_clock::now();
+    std::vector<std::string> filters{"gaussianCurvature"};
+    std::vector<std::string> kdtreeMethods{"radius"};
+    std::vector<float> kdtreeValues{10};
+    std::vector<float> minThresholds{0.005};
+    std::vector<float> maxThresholds{0.02};
+
+    runExperiments("nose-tip", filters, kdtreeMethods, kdtreeValues, minThresholds, maxThresholds);
+
+    // auto totalEnd = std::chrono::steady_clock::now();
+    // auto totalDiff = totalEnd - totalStart;
+    // double executionTime = std::chrono::duration<double, std::milli>(totalDiff).count();
+
+    // std::cout << "Execution time: " << executionTime << std::endl;;    
 }

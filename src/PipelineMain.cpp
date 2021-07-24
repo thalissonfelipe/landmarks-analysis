@@ -149,14 +149,13 @@ PipelineMainResponse PipelineMain::run(
     return response;
 }
 
-void PipelineMain::runv2(
+void PipelineMain::run(
     pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,
     std::vector<std::string>& filters,
     std::vector<std::string>& kdtreeMethods,
     std::vector<float>& kdtreeValues,
     std::vector<float>& minThresholds,
-    std::vector<float>& maxThresholds,
-    pcl::PointCloud<pcl::PointXYZ>::Ptr& outputCloud
+    std::vector<float>& maxThresholds
 )
 {
     std::vector<float> shapeIndexes;
@@ -262,6 +261,4 @@ void PipelineMain::runv2(
         *cloud = *filteredCloud;
         filteredCloud->points.clear();
     }
-
-    // *outputCloud = *cloud;
 }
