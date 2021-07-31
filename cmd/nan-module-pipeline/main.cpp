@@ -121,6 +121,41 @@ NAN_METHOD(Pipeline)
     }
 }
 
+NAN_METHOD(JoinClouds)
+{
+    try
+    {
+        v8::Local<v8::Array> files = v8::Local<v8::Array>::Cast(info[0]);
+        std::string outputFilename(*Nan::Utf8String(info[1]));
+
+        pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+        CloudsLog cloudsLog;
+
+        for (int i = 0; i < files->Length(); i++)
+        {
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+            Utils::loadCloudFile(std::string(*Nan::Utf8String(files->Get(i)->ToString())), cloud);
+            
+            *outputCloud += *cloud;
+            cloudsLog.add(std::string(*Nan::Utf8String(files->Get(i)->ToString())), cloud);
+        }
+
+        Utils::saveCloud(outputFilename, outputCloud);
+
+        v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
+        moduleResponse->Set(Nan::New("cloud").ToLocalChecked(), parsePointCloudToV8Array(*outputCloud));
+        moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(cloudsLog.getLogs()));
+        info.GetReturnValue().Set(moduleResponse);
+    }
+    catch(const std::exception& e)
+    {   
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+        isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, e.what())));
+    }
+    
+}
+
 NAN_METHOD(GaussianCurvature)
 {
     try
@@ -294,6 +329,8 @@ NAN_MODULE_INIT(init)
         GetFunction(New<FunctionTemplate>(GeometricFeature)).ToLocalChecked());
     Set(target, New<String>("applyFilters").ToLocalChecked(),
         GetFunction(New<FunctionTemplate>(Pipeline)).ToLocalChecked());
+    Set(target, New<String>("joinClouds").ToLocalChecked(),
+        GetFunction(New<FunctionTemplate>(JoinClouds)).ToLocalChecked());
 }
 
 NODE_MODULE(pipeline, init)
