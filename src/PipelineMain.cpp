@@ -11,18 +11,22 @@
 #include "Utils.h"
 #include "CloudsLog.h"
 
+const std::string OUTPUT_CLOUDS_DIRECTORY = "./output_clouds/";
+
 PipelineMainResponse PipelineMain::run(
     std::string filename,
+    std::string filepath,
     std::string outputFilename,
     std::vector<std::string>& filters,
     std::vector<std::string>& kdtreeMethods,
     std::vector<float>& kdtreeValues,
     std::vector<float>& minThresholds,
-    std::vector<float>& maxThresholds
+    std::vector<float>& maxThresholds,
+    bool saveResults
 )
 {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    Utils::loadCloudFile(filename, cloud);
+    Utils::loadCloudFile(filepath, cloud);
 
     std::cout << "Número de pontos iniciais: " << cloud->points.size() << std::endl;
 
@@ -134,6 +138,13 @@ PipelineMainResponse PipelineMain::run(
         if (filteredCloud->points.size() == 0)
         {
             throw std::runtime_error("Número de pontos após filtragens é 0! Por favor, escolha outros parâmetros.");
+        }
+
+        if (saveResults)
+        {
+            std::string folder = filename.substr(0, filename.length()-4);
+            std::time_t t = std::time(0);
+            Utils::saveCloud(OUTPUT_CLOUDS_DIRECTORY+folder+"/"+filters[i]+"_"+folder+"_"+std::to_string(t)+".pcd", filteredCloud);
         }
 
         std::cout << "Número de pontos após filtragem: " << filteredCloud->points.size() << " (" << filters[i] << ")" << std::endl;

@@ -59,8 +59,10 @@ NAN_METHOD(Pipeline)
     try
     {
         std::string filename(*Nan::Utf8String(info[0]));
-        std::string outputFilename(*Nan::Utf8String(info[1]));
-        v8::Local<v8::Array> filtersv8 = v8::Local<v8::Array>::Cast(info[2]);
+        std::string filepath(*Nan::Utf8String(info[1]));
+        std::string outputFilename(*Nan::Utf8String(info[2]));
+        v8::Local<v8::Array> filtersv8 = v8::Local<v8::Array>::Cast(info[3]);
+        bool saveResults = info[4]->BooleanValue();
 
         std::vector<std::string> filters;
         std::vector<std::string> kdtreeMethods;
@@ -99,12 +101,14 @@ NAN_METHOD(Pipeline)
 
         PipelineMainResponse response = PipelineMain::run(
             filename,
+            filepath,
             outputFilename,
             filters,
             kdtreeMethods,
             kdtreeValues,
             minThresholds,
-            maxThresholds);
+            maxThresholds,
+            saveResults);
 
         if (outputFilename != "") {
             Utils::saveCloud(outputFilename, response.lastFilteredCloud);
@@ -127,6 +131,7 @@ NAN_METHOD(JoinClouds)
     {
         v8::Local<v8::Array> files = v8::Local<v8::Array>::Cast(info[0]);
         std::string outputFilename(*Nan::Utf8String(info[1]));
+        bool saveResults = info[2]->BooleanValue();
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -141,7 +146,10 @@ NAN_METHOD(JoinClouds)
             cloudsLog.add(std::string(*Nan::Utf8String(files->Get(i)->ToString())), cloud);
         }
 
-        Utils::saveCloud(outputFilename, outputCloud);
+        if (saveResults)
+        {
+            Utils::saveCloud(outputFilename, outputCloud);
+        }
 
         v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
         moduleResponse->Set(Nan::New("cloud").ToLocalChecked(), parsePointCloudToV8Array(*outputCloud));
