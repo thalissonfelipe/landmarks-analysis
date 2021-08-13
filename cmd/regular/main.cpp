@@ -21,6 +21,9 @@
 #include "../../src/Utils.h"
 #include "../../src/NosetipFinder.h"
 
+
+// Some things have changed in this file due to initial analysis to find the inner corners of the eyes.
+// So if your goal is the location of the nose tip, visit the original repository where this project was forked.
 int main(int, char **argv)
 {
     try
