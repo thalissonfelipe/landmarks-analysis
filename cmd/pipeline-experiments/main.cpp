@@ -16,6 +16,7 @@
 #include <pcl/features/principal_curvatures.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/filter.h>
+#include <pcl/console/parse.h>
 
 namespace fs = std::experimental::filesystem;
 
@@ -30,8 +31,29 @@ bool has_suffix(const std::string &str, const std::string &suffix)
     return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
+// Check if the cloud is of type E.
+bool isExpression(const std::string &filename)
+{
+    const std::string token = "_E_";
+    if (filename.find(token) != std::string::npos) {
+        return true;
+    }
+    return false;
+}
+
+// Check if the cloud is of type N.
+bool isNeutral(const std::string &filename)
+{
+    const std::string token = "_N_";
+    if (filename.find(token) != std::string::npos) {
+        return true;
+    }
+    return false;
+}
+
 constexpr double EPSILON = 0.0001; // 1e-4
 
+// Check if the two points are equal, given a small epsilon difference.
 bool nearly_equal(double a1, double a2, double epsilon)
 {
   if (a1 == 0 && a2 == 0)
@@ -42,6 +64,9 @@ bool nearly_equal(double a1, double a2, double epsilon)
 
 void runExperiments(
     std::string pointType,
+    std::string filename,
+    bool onlyExpression,
+    bool onlyNeutral,
     std::vector<std::string>& filters,
     std::vector<std::string>& kdtreeMethods,
     std::vector<float>& kdtreeValues,
@@ -52,7 +77,7 @@ void runExperiments(
     const int nFolders = 104;
 
     std::ofstream myfile;
-    myfile.open(pointType + "1.txt"); // std::ios_base::app
+    myfile.open(filename); // std::ios_base::app
 
     myfile << "cloud,original_size,filtered_size,contains" << std::endl;
 
@@ -62,6 +87,7 @@ void runExperiments(
         oss << std::setw(3) << std::setfill('0') << i;
         std::string folder = "bs" + oss.str();
 
+        // Hardcoded paths where all original and landmarks cloud are located
         std::string landmarksPath = "/home/thalisson/Documents/landmarks/landmarks/" + pointType + "/" + folder;
         std::string cloudsPath = "/media/thalisson/Seagate Expansion Drive/BD Faces/Bosphorus_Original_PCD/" + folder + "/";
 
@@ -73,10 +99,15 @@ void runExperiments(
             std::string landmarkFilename = fs::path(landmarkPath).filename();
             std::string cloudPath = cloudsPath + landmarkFilename;
 
-            myfile << landmarkFilename << ",";
-
             if (has_suffix(landmarkFilename, ".pcd"))
             {
+                if (onlyExpression && !isExpression(landmarkFilename)) {
+                    continue;
+                }
+                if (onlyNeutral && !isNeutral(landmarkFilename)) {
+                    continue;
+                }
+                myfile << landmarkFilename << ",";
                 CloudXYZ::Ptr landmarkCloud(new CloudXYZ);
                 if (pcl::io::loadPCDFile(landmarkPath, *landmarkCloud) == -1)
                 {
@@ -142,20 +173,52 @@ void runExperiments(
     myfile.close();
 }
 
-int main(int, char **argv)
+int main(int argc, char **argv)
 {
-    // auto totalStart = std::chrono::steady_clock::now();
-    std::vector<std::string> filters{"gaussianCurvature"};
-    std::vector<std::string> kdtreeMethods{"radius"};
-    std::vector<float> kdtreeValues{10};
-    std::vector<float> minThresholds{0.005};
-    std::vector<float> maxThresholds{0.02};
+    // As a future improvement, the parameters of each filter can be passed as configuration files, for example,
+    // making the process more dynamic.
+    std::vector<std::string> filters{"gaussianCurvature", "shapeIndex"};
+    std::vector<std::string> kdtreeMethods{"radius", "radius"};
+    std::vector<float> kdtreeValues{10, 10};
+    std::vector<float> minThresholds{0.002, -1};
+    std::vector<float> maxThresholds{0.009, -0.6};
 
-    runExperiments("nose-tip", filters, kdtreeMethods, kdtreeValues, minThresholds, maxThresholds);
+    std::string pointType;
+    if (pcl::console::parse_argument(argc, argv, "-pointType", pointType) == -1) {
+        std::cout << "pointType parameter required!" << std::endl;
+        return -1;
+    }
 
-    // auto totalEnd = std::chrono::steady_clock::now();
-    // auto totalDiff = totalEnd - totalStart;
-    // double executionTime = std::chrono::duration<double, std::milli>(totalDiff).count();
+    std::string filename;
+    if (pcl::console::parse_argument(argc, argv, "-filename", filename) == -1) {
+        std::cout << "filename parameter required!" << std::endl;
+        return -1;
+    }
 
-    // std::cout << "Execution time: " << executionTime << std::endl;;    
+    bool onlyExpression = false;
+    bool onlyNeutral = false;
+
+    if (pcl::console::find_argument(argc, argv, "-expression") >= 0) {
+        onlyExpression = true;
+    }
+
+    if (pcl::console::find_argument(argc, argv, "-neutral") >= 0) {
+        onlyNeutral = true;
+    }
+
+    if (onlyExpression && onlyNeutral) {
+        std::cout << "Choose -expression or -neutral, not both!" << std::endl;
+        return -1;
+    }
+
+    runExperiments(
+        pointType,
+        filename,
+        onlyExpression,
+        onlyNeutral,
+        filters,
+        kdtreeMethods,
+        kdtreeValues,
+        minThresholds,
+        maxThresholds);
 }
