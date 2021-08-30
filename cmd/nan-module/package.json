@@ -1,14 +1,14 @@
 {
-  "name": "nosetip_finder",
+  "name": "fiducial_point_finder",
   "version": "1.0.0",
-  "description": "Finding nose tips in point cloud images.",
+  "description": "Finding nose tips and other fiducial points in point cloud images.",
   "main": "index.js",
   "scripts": {
-    "install": "cmake-js compile"
+    "compile": "cmake-js compile"
   },
   "author": "",
   "license": "ISC",
-  "homepage": "https://github.com/MarcusVLMA/nosetip_finder#readme",
+  "homepage": "https://github.com/thalissonfelipe/landmarks-analysis#readme",
   "dependencies": {
     "bindings": "^1.5.0",
     "cmake-js": "^6.1.0",

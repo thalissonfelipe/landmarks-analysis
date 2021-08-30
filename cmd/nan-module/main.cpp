@@ -23,9 +23,9 @@
 #include "../../src/Main.h"
 #include "../../src/CloudsLog.h"
 
-v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud)
+v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ> pointCloud)
 {
-    int pointCloudSize = pointCloud->points.size();
+    int pointCloudSize = pointCloud.points.size();
     v8::Local<v8::Array> response = Nan::New<v8::Array>(pointCloudSize);
 
     for (int i = 0; i < pointCloudSize; i++)
@@ -33,7 +33,7 @@ v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ>::Pt
         pcl::PointXYZ point;
         v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-        point = pointCloud->points[i];
+        point = pointCloud.points[i];
 
         obj->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(point.x));
         obj->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(point.y));
