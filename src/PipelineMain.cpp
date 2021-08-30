@@ -22,7 +22,7 @@ PipelineMainResponse PipelineMain::run(
     std::vector<float>& kdtreeValues,
     std::vector<float>& minThresholds,
     std::vector<float>& maxThresholds,
-    bool saveResults
+    int saveResults
 )
 {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);

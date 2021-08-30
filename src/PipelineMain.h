@@ -30,7 +30,7 @@ public:
         std::vector<float>& kdtreeValues,
         std::vector<float>& minThresholds,
         std::vector<float>& maxThresholds,
-        bool saveResults);
+        int saveResults);
 
     void static run(
         pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,

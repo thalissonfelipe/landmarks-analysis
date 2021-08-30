@@ -62,7 +62,7 @@ NAN_METHOD(Pipeline)
         std::string filepath(*Nan::Utf8String(info[1]));
         std::string outputFilename(*Nan::Utf8String(info[2]));
         v8::Local<v8::Array> filtersv8 = v8::Local<v8::Array>::Cast(info[3]);
-        bool saveResults = info[4]->BooleanValue();
+        int saveResults = info[4]->NumberValue();
 
         std::vector<std::string> filters;
         std::vector<std::string> kdtreeMethods;
@@ -131,7 +131,7 @@ NAN_METHOD(JoinClouds)
     {
         v8::Local<v8::Array> files = v8::Local<v8::Array>::Cast(info[0]);
         std::string outputFilename(*Nan::Utf8String(info[1]));
-        bool saveResults = info[2]->BooleanValue();
+        int saveResults = info[2]->NumberValue();
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud(new pcl::PointCloud<pcl::PointXYZ>);
 
