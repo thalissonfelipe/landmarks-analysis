@@ -6,28 +6,40 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
 
-void Cropper::cropByPointIndex(CloudXYZ::ConstPtr &inputCloud, int pointIndex, std::string radiusOrK,
-                               float radiusOrKvalue, CloudXYZ::Ptr &outputCloud)
+void Cropper::cropByPointIndex(CloudXYZ::ConstPtr &inputCloud,
+                               int pointIndex,
+                               std::string radiusOrK,
+                               float radiusOrKvalue,
+                               CloudXYZ::Ptr &outputCloud)
 {
     std::vector<int> defaultPointIndexSearch;
     std::vector<float> defaultPointSquaredDistance;
 
-    CloudPC::Ptr
-        defaultPrincipalCurvaturesCloud(new CloudPC());
+    CloudPC::Ptr defaultPrincipalCurvaturesCloud(new CloudPC());
 
     defaultPrincipalCurvaturesCloud->points.resize(inputCloud->points.size());
 
     Cropper::cropByPointIndex(
-        inputCloud, defaultPrincipalCurvaturesCloud, pointIndex, radiusOrK, radiusOrKvalue, outputCloud,
-        defaultPrincipalCurvaturesCloud, defaultPointIndexSearch, defaultPointSquaredDistance);
+        inputCloud,
+        defaultPrincipalCurvaturesCloud,
+        pointIndex,
+        radiusOrK,
+        radiusOrKvalue,
+        outputCloud,
+        defaultPrincipalCurvaturesCloud,
+        defaultPointIndexSearch,
+        defaultPointSquaredDistance);
 }
 
 void Cropper::cropByPointIndex(CloudXYZ::ConstPtr &inputCloud,
-                               CloudPC::Ptr &inputPrincipalCurvatures, int pointIndex,
-                               std::string radiusOrK, float radiusOrKvalue,
+                               CloudPC::Ptr &inputPrincipalCurvatures,
+                               int pointIndex,
+                               std::string radiusOrK,
+                               float radiusOrKvalue,
                                CloudXYZ::Ptr &outputCloud,
                                CloudPC::Ptr &outputPrincipalCurvaturesCloud,
-                               std::vector<int> &pointIndexSearch, std::vector<float> &pointSquaredDistance)
+                               std::vector<int> &pointIndexSearch,
+                               std::vector<float> &pointSquaredDistance)
 {
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
     kdTree.setInputCloud(inputCloud);
@@ -59,13 +71,16 @@ void Cropper::cropByPointIndex(CloudXYZ::ConstPtr &inputCloud,
         else
         {
             throw std::runtime_error("Use only 'radius' or 'k' in cropByPointIndex");
-            return;
         }
     }
 }
 
-void Cropper::cropByPointValues(CloudXYZ::Ptr &inputCloud, float xValue, float yValue, float zValue,
-                                std::string radiusOrK, float radiusOrKvalue,
+void Cropper::cropByPointValues(CloudXYZ::Ptr &inputCloud,
+                                float xValue,
+                                float yValue,
+                                float zValue,
+                                std::string radiusOrK,
+                                float radiusOrKvalue,
                                 CloudXYZ::Ptr &outputCloud)
 {
     std::vector<int> defaultPointIndexSearch;
@@ -77,41 +92,40 @@ void Cropper::cropByPointValues(CloudXYZ::Ptr &inputCloud, float xValue, float y
     defaultPointIndexSearch.resize(inputCloud->points.size());
     defaultPointSquaredDistance.resize(inputCloud->points.size());
 
-    Cropper::cropByPointValues(inputCloud, defaultPrincipalCurvaturesCloud, xValue, yValue, zValue, radiusOrK,
-                               radiusOrKvalue, outputCloud, defaultPrincipalCurvaturesCloud, defaultPointIndexSearch, defaultPointSquaredDistance);
+    Cropper::cropByPointValues(inputCloud,
+                               defaultPrincipalCurvaturesCloud,
+                               xValue,
+                               yValue,
+                               zValue,
+                               radiusOrK,
+                               radiusOrKvalue,
+                               outputCloud,
+                               defaultPrincipalCurvaturesCloud,
+                               defaultPointIndexSearch,
+                               defaultPointSquaredDistance);
 }
 
 void Cropper::cropByPointValues(CloudXYZ::Ptr &inputCloud,
-                                CloudPC::Ptr &inputPrincipalCurvatures, float xValue,
-                                float yValue, float zValue, std::string radiusOrK, float radiusOrKvalue,
+                                CloudPC::Ptr &inputPrincipalCurvatures,
+                                float xValue,
+                                float yValue,
+                                float zValue,
+                                std::string radiusOrK,
+                                float radiusOrKvalue,
                                 CloudXYZ::Ptr &outputCloud,
                                 CloudPC::Ptr &outputPrincipalCurvaturesCloud,
-                                std::vector<int> &pointIndexSearch, std::vector<float> &pointSquaredDistance)
+                                std::vector<int> &pointIndexSearch,
+                                std::vector<float> &pointSquaredDistance)
 {
     CloudXYZ::ConstPtr constCloud = inputCloud;
     pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
     kdTree.setInputCloud(constCloud);
 
-    int pointIndex = -1;
-
-    for (int i = 0; i < constCloud->points.size(); i++)
-    {
-        if (constCloud->points[i].x == xValue && constCloud->points[i].y == yValue && constCloud->points[i].z == zValue)
-        {
-            pointIndex = i;
-            break;
-        }
-    }
-
-    if (pointIndex == -1)
-    {
-        throw std::runtime_error("This point doesn't exist on Input Cloud, please insert on it.");
-        return;
-    }
+    pcl::PointXYZ point = pcl::PointXYZ(xValue, yValue, zValue);
 
     if (radiusOrK == "radius")
     {
-        if (kdTree.radiusSearch(constCloud->points[pointIndex], radiusOrKvalue, pointIndexSearch, pointSquaredDistance) > 0)
+        if (kdTree.radiusSearch(point, radiusOrKvalue, pointIndexSearch, pointSquaredDistance) > 0)
         {
             for (int j = 0; j < pointIndexSearch.size(); j++)
             {
@@ -119,35 +133,40 @@ void Cropper::cropByPointValues(CloudXYZ::Ptr &inputCloud,
                 outputPrincipalCurvaturesCloud->points.push_back(inputPrincipalCurvatures->points[pointIndexSearch[j]]);
             }
         }
+
+        return;
     }
-    else
+    else if (radiusOrK == "k")
     {
-        if (radiusOrK == "k")
+        if (kdTree.nearestKSearch(point, radiusOrKvalue, pointIndexSearch, pointSquaredDistance) > 0)
         {
-            if (kdTree.nearestKSearch(constCloud->points[pointIndex], radiusOrKvalue, pointIndexSearch, pointSquaredDistance) > 0)
+            for (int j = 0; j < pointIndexSearch.size(); j++)
             {
-                for (int j = 0; j < pointIndexSearch.size(); j++)
-                {
-                    outputCloud->points.push_back(constCloud->points[pointIndexSearch[j]]);
-                    outputPrincipalCurvaturesCloud->points.push_back(inputPrincipalCurvatures->points[pointIndexSearch[j]]);
-                }
+                outputCloud->points.push_back(constCloud->points[pointIndexSearch[j]]);
+                outputPrincipalCurvaturesCloud->points.push_back(inputPrincipalCurvatures->points[pointIndexSearch[j]]);
             }
         }
-        else
-        {
-            throw std::runtime_error("Use only 'radius' or 'k' in cropByPointIndex");
-            return;
-        }
+
+        return;
     }
+    
+    throw std::runtime_error("Use only 'radius' or 'k' in cropByPointIndex");
 }
 
-void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud, float radiusSearchSize,
-                                   int pointsThreshold, CloudXYZ::Ptr &outputCloud)
+void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud,
+                                   float radiusSearchSize,
+                                   int pointsThreshold,
+                                   CloudXYZ::Ptr &outputCloud)
 {
     CloudPC::Ptr defaultPrincipalCurvaturesCloud;
     defaultPrincipalCurvaturesCloud->points.resize(inputCloud->points.size());
 
-    Cropper::removeIsolatedPoints(inputCloud, defaultPrincipalCurvaturesCloud, radiusSearchSize, pointsThreshold, outputCloud, defaultPrincipalCurvaturesCloud);
+    Cropper::removeIsolatedPoints(inputCloud,
+                                  defaultPrincipalCurvaturesCloud,
+                                  radiusSearchSize,
+                                  pointsThreshold,
+                                  outputCloud,
+                                  defaultPrincipalCurvaturesCloud);
 }
 
 void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud,
@@ -194,9 +213,10 @@ void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud,
     int iteratorCounter = 1;
 
     bool continueLoop = true;
+
+
     while (continueLoop)
     {
-
         for (int i = 0; i < inputCloud->points.size(); i++)
         {
             pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
@@ -217,6 +237,8 @@ void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud,
             pointIndexRadiusSearch.clear();
             pointRadiusSquaredDistance.clear();
         }
+
+        std::cout << "Number of points of outputCloud " << outputCloud->points.size() << " Iteration: " << iteratorCounter << std::endl;
 
         std::string logLabel = "3." + std::to_string(iteratorCounter) + " Removing isolated points (min " + std::to_string(_pointsThreshold) + ")";
         cloudsLog.add(logLabel, outputCloud);

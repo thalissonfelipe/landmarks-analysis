@@ -52,6 +52,36 @@ class Computation
             CloudPC &inputPrincipalCurvaturesCloud,
             int kPoints
         );
+
+        void static thresholdByShapeIndex(
+            CloudXYZ::Ptr &inputCloud,
+            std::vector<float> shapeIndexes,
+            float thresholdMin,
+            float thresholdMax,
+            CloudXYZ::Ptr &outputCloud,
+            std::vector<float> outputShapeIndexes);
+
+        void static thresholdByGaussianCurvature(
+            CloudXYZ::Ptr &inputCloud,
+            CloudPC::Ptr &inputPrincipalCurvaturesCloud,
+            float thresholdMin,
+            CloudXYZ::Ptr &outputCloud,
+            CloudPC::Ptr &outputPrincipalCurvaturesCloud);
+
+        void static thresholdByShapeIndexAndGaussianCurvature(
+            CloudXYZ::Ptr &inputCloud,
+            std::vector<float> shapeIndexes,
+            CloudPC::Ptr &inputPrincipalCurvaturesCloud,
+            float thresholdShapeIndexMin,
+            float thresholdShapeIndexMax,
+            float thresholdPrincipalCurvatureMin,
+            CloudXYZ::Ptr &outputCloud,
+            std::vector<float> outputShapeIndexes,
+            CloudPC::Ptr &outputPrincipalCurvaturesCloud);
+
+        void static removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep);
+
+        void static removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep);
 };
 
 

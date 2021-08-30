@@ -21,6 +21,9 @@
 #include "../../src/Utils.h"
 #include "../../src/NosetipFinder.h"
 
+
+// Some things have changed in this file due to initial analysis to find the inner corners of the eyes.
+// So if your goal is the location of the nose tip, visit the original repository where this project was forked.
 int main(int, char **argv)
 {
     try
@@ -50,6 +53,10 @@ int main(int, char **argv)
         float removeIsolatedPointsRadius = std::stof(argv[11]);
         int removeIsolatedPointsThreshold = std::stoi(argv[12]);
         int nosetipSearchRadius = std::stoi(argv[13]);
+        float gfSearchRadius = std::stof(argv[14]);
+        std::string features = argv[15];
+        std::string featuresThreshold = argv[16];
+        std::string fiducialPoint = argv[17];
 
         struct MainResponse response = Main::run(
             filename,
@@ -65,101 +72,104 @@ int main(int, char **argv)
             removeIsolatedPointsRadius,
             removeIsolatedPointsThreshold,
             nosetipSearchRadius,
-            -1); // Not using analysis of point for now
+            gfSearchRadius,
+            features,
+            featuresThreshold,
+            fiducialPoint);
 
-        pcl::PointXYZ noseTip = response.noseTip;
+        pcl::PointXYZ point = response.point;
         std::vector<CloudsLogEntry> cloudsLogEntries = response.cloudsLog.getLogs();
         double executionTime = response.executionTime;
 
-        if (argv[14])
-        {
-            NosetipFinder::saveNoseTip(noseTip, argv[14], filename);
-        }
+        // if (!argv[14])
+        // {
+        //     NosetipFinder::saveNoseTip(noseTip, argv[14], filename);
+        // }
 
-        if (strcmp(argv[15], "visualizar") == 0)
-        {
-            pcl::visualization::PCLVisualizer viewer;
-            for (int k = 0; k < cloudsLogEntries.size(); k++)
-            {
-                int r = rand() % 256;
-                int g = rand() % 256;
-                int b = rand() % 256;
-                int pointsSize = 2;
+        // if (strcmp(argv[15], "visualizar") == 0)
+        // {
+        //     pcl::visualization::PCLVisualizer viewer;
+        //     for (int k = 0; k < cloudsLogEntries.size(); k++)
+        //     {
+        //         int r = rand() % 256;
+        //         int g = rand() % 256;
+        //         int b = rand() % 256;
+        //         int pointsSize = 2;
 
-                // Highlighting the found nosetip
-                if (k == cloudsLogEntries.size() - 1)
-                {
-                    r = 255;
-                    g = 255;
-                    b = 255;
-                    pointsSize = 10;
-                    std::cout << cloudsLogEntries[k].cloudLabel << std::endl;
-                }
+        //         // Highlighting the found nosetip
+        //         if (k == cloudsLogEntries.size() - 1)
+        //         {
+        //             r = 255;
+        //             g = 255;
+        //             b = 255;
+        //             pointsSize = 10;
+        //             std::cout << cloudsLogEntries[k].cloudLabel << std::endl;
+        //         }
 
-                pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> cloudColor(cloudsLogEntries[k].cloud, r, g, b);
-                viewer.addPointCloud<pcl::PointXYZ>(cloudsLogEntries[k].cloud, cloudColor, "cloudlog-" + std::to_string(k), 0);
-                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pointsSize, "cloudlog-" + std::to_string(k));
-            }
+        //         pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> cloudColor(cloudsLogEntries[k].cloud, r, g, b);
+        //         viewer.addPointCloud<pcl::PointXYZ>(cloudsLogEntries[k].cloud, cloudColor, "cloudlog-" + std::to_string(k), 0);
+        //         viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pointsSize, "cloudlog-" + std::to_string(k));
+        //     }
 
-            while (!viewer.wasStopped())
-            {
-                viewer.spinOnce(100);
-            }
-        }
+        //     while (!viewer.wasStopped())
+        //     {
+        //         viewer.spinOnce(100);
+        //     }
+        // }
 
-        if (argv[16] && argv[17] && argv[18])
-        {
-            std::cout << "Reading " << argv[16] << " to verify nosetip." << std::endl;
+        // if (argv[16] && argv[17] && argv[18])
+        // {
+        //     std::cout << "Reading " << argv[16] << " to verify nosetip." << std::endl;
 
-            CloudXYZ::Ptr verificationCloud(new CloudXYZ);
+        //     CloudXYZ::Ptr verificationCloud(new CloudXYZ);
 
-            if (pcl::io::loadPCDFile(argv[16], *verificationCloud) == -1)
-            {
-                throw std::runtime_error("Couldn't read verification file");
-                return (-1);
-            }
+        //     if (pcl::io::loadPCDFile(argv[16], *verificationCloud) == -1)
+        //     {
+        //         throw std::runtime_error("Couldn't read verification file");
+        //         return (-1);
+        //     }
 
-            bool isAGoodNoseTip;
+        //     bool isAGoodNoseTip;
 
-            if (
-                NosetipFinder::itsAGoodNoseTip(noseTip, verificationCloud->points[0].x, verificationCloud->points[0].y, verificationCloud->points[0].z, 20))
-            {
-                std::cout << "It's a good nose tip" << std::endl;
-                isAGoodNoseTip = true;
-            }
-            else
-            {
-                std::cout << "It is not a good nose tip" << std::endl;
-                isAGoodNoseTip = false;
-            }
+        //     if (
+        //         NosetipFinder::itsAGoodNoseTip(noseTip, verificationCloud->points[0].x, verificationCloud->points[0].y, verificationCloud->points[0].z, 20))
+        //     {
+        //         std::cout << "It's a good nose tip" << std::endl;
+        //         isAGoodNoseTip = true;
+        //     }
+        //     else
+        //     {
+        //         std::cout << "It is not a good nose tip" << std::endl;
+        //         isAGoodNoseTip = false;
+        //     }
 
-            Utils::saveProcessingResult(
-                argv[17],
-                filename,
-                isAGoodNoseTip,
-                executionTime,
-                verificationCloud->points[0],
-                noseTip);
-        }
-        else if (strcmp(argv[15], "visualizar") == 0)
-        {
-            std::string resp;
-            std::cout << "It's a good nose tip? Y/N" << std::endl;
-            std::cin >> resp;
+        //     Utils::saveProcessingResult(
+        //         argv[17],
+        //         filename,
+        //         isAGoodNoseTip,
+        //         executionTime,
+        //         verificationCloud->points[0],
+        //         noseTip);
+        // }
+        // else if (strcmp(argv[15], "visualizar") != 0)
+        // {
+        //     std::string resp;
+        //     std::cout << "It's a good nose tip? Y/N" << std::endl;
+        //     std::cin >> resp;
 
-            bool boolResp = false;
-            if (resp == "y" || resp == "Y")
-            {
-                boolResp = true;
-            }
+        //     bool boolResp = false;
+        //     if (resp == "y" || resp == "Y")
+        //     {
+        //         boolResp = true;
+        //     }
 
-            Utils::saveProcessingResult(
-                argv[16],
-                filename,
-                boolResp,
-                executionTime,
-                noseTip);
-        }
+        //     Utils::saveProcessingResult(
+        //         argv[16],
+        //         filename,
+        //         boolResp,
+        //         executionTime,
+        //         noseTip);
+        // }
     }
     catch (std::exception &e)
     {
@@ -167,15 +177,15 @@ int main(int, char **argv)
         std::cout << errorCause << std::endl;
 
         std::string errorFile;
-        if (argv[18])
-        {
-            errorFile = argv[18];
-        }
-        else
-        {
-            errorFile = argv[17];
-        }
+        // if (argv[18])
+        // {
+        //     errorFile = argv[18];
+        // }
+        // else
+        // {
+        //     errorFile = argv[17];
+        // }
 
-        Utils::saveErrorResult(errorFile, argv[1], errorCause);
+        // Utils::saveErrorResult(errorFile, argv[1], errorCause);
     }
 }

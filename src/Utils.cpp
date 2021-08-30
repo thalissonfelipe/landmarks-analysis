@@ -33,39 +33,54 @@ CloudXYZ::Ptr Utils::loadCloudFile(std::string filename)
       throw std::runtime_error("Couldn't read PLY file");
     }
   }
+  else {
+    throw std::runtime_error("Only pcd, obj and ply cloud are supported");
+  }
 
   return cloud;
 }
 
-PointAnalysis Utils::getPointAnalysis(pcl::PointXYZ point, CloudXYZ::Ptr &inputCloud, CloudNormal::Ptr &normalCloud, CloudPC::Ptr &principalCurvaturesCloud, std::vector<float> shapeIndexes)
+CloudXYZ::Ptr Utils::loadCloudFile(std::string filename, CloudXYZ::Ptr cloud)
 {
-  int index = -1;
-
-  for (int i = 0; i < inputCloud->points.size(); i++)
+  if (filename.substr(filename.length() - 3) == "pcd")
   {
-    pcl::PointXYZ p = inputCloud->points[i];
-    if (point.x == p.x && point.y == p.y && point.z == p.z)
+    if (pcl::io::loadPCDFile(filename, *cloud) == -1)
     {
-      index = i;
-      break;
+      throw std::runtime_error("Couldn't read PCD file");
     }
   }
-
-  if (index == -1)
+  else if (filename.substr(filename.length() - 3) == "obj")
   {
-    throw std::runtime_error("Could not find provided point for analysis after NaN filters. Maybe you selected a NaN point or a nonexistent index.");
+    if (pcl::io::loadOBJFile(filename, *cloud) == -1)
+    {
+      throw std::runtime_error("Couldn't read OBJ file");
+    }
+  }
+  else if (filename.substr(filename.length() - 3) == "ply")
+  {
+    if (pcl::io::loadPLYFile(filename, *cloud) == -1)
+    {
+      throw std::runtime_error("Couldn't read PLY file");
+    }
+  }
+  else {
+    throw std::runtime_error("Only pcd, obj and ply cloud are supported");
   }
 
-  pcl::Normal normal = normalCloud->points[index];
-  pcl::PrincipalCurvatures principalCurvatures = principalCurvaturesCloud->points[index];
-  float shapeIndex = shapeIndexes[index];
-  float gaussianCurvature = principalCurvatures.pc1 * principalCurvatures.pc2;
-
-  struct PointAnalysis pa = {normal, principalCurvatures, shapeIndex, gaussianCurvature, false};
-  return pa;
+  return cloud;
 }
 
-void Utils::saveProcessingResult(std::string outputFilename, std::string inputCloudFilename, bool isAGoodNoseTip, double totalMilliseconds, pcl::PointXYZ originalNoseTip, pcl::PointXYZ foundNoseTip)
+void Utils::saveCloud(std::string filename, CloudXYZ::Ptr cloud)
+{
+  pcl::io::savePCDFileASCII(filename, *cloud);
+}
+
+void Utils::saveProcessingResult(std::string outputFilename,
+                                 std::string inputCloudFilename,
+                                 bool isAGoodNoseTip,
+                                 double totalMilliseconds,
+                                 pcl::PointXYZ originalNoseTip,
+                                 pcl::PointXYZ foundNoseTip)
 {
   std::ofstream outputFile;
   outputFile.open(outputFilename, std::ios_base::app);
@@ -73,7 +88,11 @@ void Utils::saveProcessingResult(std::string outputFilename, std::string inputCl
   outputFile.close();
 }
 
-void Utils::saveProcessingResult(std::string outputFilename, std::string inputCloudFilename, bool isAGoodNoseTip, double totalMilliseconds, pcl::PointXYZ foundNoseTip)
+void Utils::saveProcessingResult(std::string outputFilename,
+                                 std::string inputCloudFilename,
+                                 bool isAGoodNoseTip,
+                                 double totalMilliseconds,
+                                 pcl::PointXYZ foundNoseTip)
 {
   std::ofstream outputFile;
   outputFile.open(outputFilename, std::ios_base::app);

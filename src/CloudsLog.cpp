@@ -18,6 +18,6 @@ void CloudsLog::setLogs(std::vector<CloudsLogEntry> newLogs)
 
 void CloudsLog::add(std::string cloudLabel, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
-  struct CloudsLogEntry newLogEntry = {cloudLabel, cloud};
+  struct CloudsLogEntry newLogEntry = {cloudLabel, *cloud};
   logs.push_back(newLogEntry);
 }
